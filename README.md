@@ -10,7 +10,7 @@ ACR introduces a **runtime control architecture** that allows organizations to m
 ---
 ## ACR Framework Architecture
 
-![ACR Framework](./a_digital_infographic_titled_acr_framework_depic.png)
+![ACR Framework](./acr-framework.png)
 *Figure 1. The ACR Framework defines six runtime governance control layers for autonomous AI systems: Identity & Purpose Binding, Behavioral Policy Enforcement, Autonomy Drift Detection, Execution Observability, Self-Healing & Containment, and Human Authority.*
 
 ---
