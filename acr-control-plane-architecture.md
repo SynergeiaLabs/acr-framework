@@ -13,7 +13,8 @@ The ACR Control Plane mediates interactions between autonomous AI systems and en
 The ACR Control Plane operates as an intermediary layer between autonomous AI systems and enterprise resources.
 
 This layer ensures that all AI actions are subject to governance controls before interacting with enterprise infrastructure.
- ---
+
+![ACR Control Plane Architecture](acr-control-plane.png)
  
 By positioning governance controls in this location, organizations can maintain visibility, enforce policies, and intervene in AI system behavior during runtime.
 
