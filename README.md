@@ -128,210 +128,53 @@ See [ACR Control Plane Architecture](./acr-control-plane-architecture.md) for de
 
 ---
 
-## Control Layer Specifications
+## Control Layer Overview
 
 ### Layer 1: Identity & Purpose Binding
 
-**Purpose:** Establish and enforce the operational identity and authorized scope of each AI system.
+Every AI system operates with a cryptographically-bound identity tied to specific business purposes and authorized resources. Prevents operational scope expansion without approval.
 
-**Control objectives:**
-- Cryptographically bind AI systems to defined identities
-- Scope capabilities to specific business purposes
-- Authorize access only to required resources
-- Prevent operational scope expansion without approval
-
-**Architectural patterns:**
-- Service identity tokens (JWT, SPIFFE/SPIRE, x.509)
-- Purpose-based role assignments (RBAC, ABAC)
-- Resource access control lists
-- Capability authorization matrices
-
-**Enforcement points:** API gateways, service mesh policy enforcement, SDK authorization layers
-
-**Failure mode:** Deny by default—systems without valid identity bindings cannot execute
-
-See [Identity & Purpose Binding Specification](./docs/pillars/01-identity-purpose-binding.md)
+**[Full Specification →](./docs/pillars/01-identity-purpose-binding.md)**
 
 ---
 
 ### Layer 2: Behavioral Policy Enforcement
 
-**Purpose:** Translate governance policies into machine-enforceable runtime rules.
+Governance policies translate into machine-enforceable runtime rules for input validation, output filtering, action authorization, and data handling.
 
-**Control objectives:**
-- Validate inputs against security and compliance policies
-- Filter outputs to prevent data leakage and policy violations
-- Authorize actions before execution
-- Enforce data handling requirements
-
-**Policy categories:**
-- **Input validation:** Prompt injection detection, schema validation, input sanitization
-- **Output filtering:** PII redaction, content safety, hallucination detection, response constraints
-- **Action authorization:** Tool invocation approval, resource modification gating, multi-step workflow controls
-- **Data handling:** Retention enforcement, encryption requirements, access logging, classification labels
-
-**Architectural patterns:**
-- Policy-as-code engines (OPA, Cedar, Rego)
-- Rule-based validators (regex, schema validation)
-- ML-based classifiers (content safety, PII detection)
-- Decision caching and policy versioning
-
-**Enforcement points:** Pre-inference (inputs), post-inference (outputs), per-action (tool calls)
-
-**Design considerations:**
-- Latency budget: <50ms policy evaluation overhead target
-- Fail-safe defaults: Deny on policy engine failure
-- Policy conflict resolution: Explicit precedence rules required
-
-See [Behavioral Policy Enforcement Specification](./docs/pillars/02-behavioral-policy-enforcement.md)
+**[Full Specification →](./docs/pillars/02-behavioral-policy-enforcement.md)**
 
 ---
 
 ### Layer 3: Autonomy Drift Detection
 
-**Purpose:** Identify when AI system behavior deviates from established operational baselines.
+Establishes behavioral baselines and monitors for statistical deviations indicating the system is operating outside intended parameters.
 
-**Control objectives:**
-- Establish behavioral baselines during normal operation
-- Monitor operational metrics for statistical deviations
-- Alert on significant behavioral changes
-- Trigger containment when drift exceeds thresholds
-
-**Drift indicators:**
-- **Prompt patterns:** Semantic embedding distance from baseline inputs
-- **Tool usage:** Frequency and sequencing changes in API invocations
-- **Output characteristics:** Distribution shifts in response length, sentiment, topic
-- **Resource consumption:** Anomalous token usage, cost patterns, latency
-- **Error rates:** Increased policy violations or failed actions
-
-**Detection methodologies:**
-- Statistical process control (control charts, threshold-based alerts)
-- Embedding similarity analysis (cosine distance, Mahalanobis distance)
-- Anomaly detection models (Isolation Forest, autoencoders, Gaussian mixture)
-- Time-series forecasting (ARIMA, Prophet)
-
-**Baseline establishment:**
-- Minimum observation window: 7-30 days of production traffic
-- Statistical profiling: Mean, standard deviation, percentiles per metric
-- Baseline refresh: Quarterly or post-configuration change
-- Multi-modal baselines: Support for expected behavioral variations
-
-**Alert thresholds:**
-- **Normal (Green):** <2σ deviation from baseline
-- **Warning (Amber):** 2-3σ deviation, log and monitor
-- **Critical (Red):** >3σ deviation, trigger containment
-
-See [Autonomy Drift Detection Specification](./docs/pillars/03-autonomy-drift-detection.md)
+**[Full Specification →](./docs/pillars/03-autonomy-drift-detection.md)** *(In progress)*
 
 ---
 
 ### Layer 4: Execution Observability
 
-**Purpose:** Provide comprehensive visibility into AI system operations for audit, analysis, and compliance.
+Captures structured telemetry for all AI operations, enabling audit trails, decision reconstruction, and compliance evidence generation.
 
-**Control objectives:**
-- Capture structured telemetry for all AI operations
-- Maintain immutable audit trails
-- Enable decision lineage reconstruction
-- Generate compliance evidence
-
-**Telemetry requirements:**
-- **Event identification:** Unique event ID, timestamp, correlation IDs
-- **System context:** Agent ID, model provider/version, configuration
-- **Request context:** User ID, session ID, purpose/intent
-- **Input capture:** Prompts, context, available tools/resources
-- **Policy decisions:** All policy evaluations and results
-- **Execution trace:** Tool invocations, API calls, reasoning steps
-- **Output capture:** Completions, tool results, final responses
-- **Operational metrics:** Latency, token usage, cost, drift scores
-
-**Storage requirements:**
-- Immutable append-only logs (tamper-evident)
-- Minimum retention: 90 days (extend per compliance regime)
-- Queryable by: agent_id, user_id, session_id, timestamp, policy_decision
-- Export capabilities: SIEM integration, data lake, compliance systems
-
-**Architectural patterns:**
-- Structured logging (JSON, Protocol Buffers)
-- Distributed tracing (OpenTelemetry, Jaeger)
-- Event streaming (Kafka, Kinesis)
-- Time-series databases (InfluxDB, TimescaleDB)
-
-See [Execution Observability Specification](./docs/pillars/04-execution-observability.md)
+**[Full Specification →](./docs/pillars/04-execution-observability.md)** *(In progress)*
 
 ---
 
 ### Layer 5: Self-Healing & Containment
 
-**Purpose:** Enable automated response to policy violations, drift detection, and operational anomalies.
+Enables automated response to policy violations and drift through capability restriction, workflow interruption, system isolation, and escalation.
 
-**Control objectives:**
-- Detect incidents requiring containment
-- Execute automated mitigation actions
-- Prevent incident escalation
-- Trigger human escalation when required
-
-**Response mechanisms:**
-- **Capability restriction:** Revoke tool access, limit data sources, reduce permissions
-- **Workflow interruption:** Pause multi-step processes, require approval for continuation
-- **System isolation:** Quarantine agent, block external communications
-- **Graceful degradation:** Fallback to constrained operation mode, simpler models
-- **Human escalation:** Alert on-call teams, create incident records
-
-**Triggering criteria:**
-- Policy violation severity thresholds
-- Drift detection critical alerts
-- Repeated failed actions or errors
-- Cost or rate limit breaches
-- Manual kill switch activation
-
-**Recovery protocols:**
-- Automated recovery: Resume after cooldown if no repeat violations
-- Manual approval: Require engineer review via dashboard/API
-- Incident analysis: Root cause investigation before restoration
-- Baseline update: Refresh drift baselines post-recovery
-
-**Design considerations:**
-- Circuit breaker patterns for cascading failure prevention
-- Idempotent recovery operations
-- State preservation during containment
-- Audit logging of all containment actions
-
-See [Self-Healing & Containment Specification](./docs/pillars/05-self-healing-containment.md)
+**[Full Specification →](./docs/pillars/05-self-healing-containment.md)** *(In progress)*
 
 ---
 
 ### Layer 6: Human Authority
 
-**Purpose:** Preserve human oversight and intervention capability over autonomous AI operations.
+Preserves human oversight through intervention mechanisms, approval workflows, override capabilities, and defined escalation paths.
 
-**Control objectives:**
-- Enable real-time human intervention
-- Establish approval workflows for high-risk actions
-- Maintain override mechanisms
-- Define escalation paths with SLAs
-
-**Intervention mechanisms:**
-- **Pre-action approval:** High-risk operations gate on human review
-- **Real-time override:** Kill switches, capability revocation via dashboard/API
-- **Post-hoc review:** Audit and rollback of automated decisions
-- **Policy modification:** Update enforcement rules without code deployment
-
-**Escalation tiers:**
-
-| Tier | Trigger | Response SLA | Authority |
-|------|---------|--------------|-----------|
-| L0 - Automated | Policy violation | <1 second | Control plane |
-| L1 - On-call | Drift alert, anomaly | <15 minutes | Operations/Security |
-| L2 - Management | High-risk action request | <4 hours | Business owner |
-| L3 - Executive | Regulatory/legal concern | <24 hours | CISO/Legal |
-
-**Human-in-the-loop patterns:**
-- **Synchronous gating:** Block operation until approval (high latency, high assurance)
-- **Asynchronous review:** Allow operation, flag for post-review (low latency, lower assurance)
-- **Threshold-based:** Auto-approve below limit, gate above (balanced approach)
-
-See [Human Authority Specification](./docs/pillars/06-human-authority.md)
+**[Full Specification →](./docs/pillars/06-human-authority.md)** *(In progress)*
 
 ---
 
@@ -397,30 +240,6 @@ See [NIST AI RMF Mapping](./acr-nist-ai-rmf-mapping.md) for detailed control map
 
 ---
 
-## Threat Model
-
-ACR addresses threats specific to autonomous AI systems, organized by STRIDE categories:
-
-| Threat | Attack Vector | ACR Control Layer |
-|--------|---------------|-------------------|
-| **Spoofing** | Agent impersonation, identity theft | Identity & Purpose Binding |
-| **Tampering** | Prompt injection, jailbreaking, context manipulation | Behavioral Policy Enforcement |
-| **Repudiation** | Denied malicious actions, log manipulation | Execution Observability |
-| **Information Disclosure** | Data exfiltration, PII leakage, credential exposure | Behavioral Policy (output filtering) |
-| **Denial of Service** | Resource exhaustion, cost attacks, infinite loops | Self-Healing & Containment |
-| **Elevation of Privilege** | Unauthorized tool access, capability escalation | Identity Binding + Policy Enforcement |
-
-**Additional AI-specific threats:**
-- **Model manipulation:** Adversarial inputs, gradient attacks → Input validation policies
-- **Training data extraction:** Model inversion → Output filtering, access controls
-- **Prompt leaking:** System prompt exposure → Input sanitization, output filtering
-- **Tool misuse:** Unauthorized API invocations → Purpose binding, action authorization
-- **Context pollution:** Malicious context injection → Context validation, drift detection
-
-See [ACR STRIDE Threat Model](./acr-strike-threat-model.md) for comprehensive threat analysis.
-
----
-
 ## Use Cases
 
 ACR applies to autonomous AI systems across enterprise contexts:
@@ -432,6 +251,37 @@ ACR applies to autonomous AI systems across enterprise contexts:
 - **Multi-Agent Workflows:** Coordinate inter-agent authorization, maintain workflow audit trails, contain cascading failures
 
 See [ACR Use Cases](./acr-use-cases.md) for detailed scenarios and control applications.
+
+---
+
+## Documentation
+
+### Core Framework
+- **[Framework README](./README.md)** - This document
+- **[Control Plane Architecture](./acr-control-plane-architecture.md)** - Technical architecture
+- **[Runtime Architecture](./acr-runtime-architecture.md)** - Deployment patterns
+- **[Production Lifecycle](./acr-production-lifecycle.md)** - End-to-end workflow
+
+### Pillar Specifications
+- **[Pillars Overview](./acr-pillars.md)** - All six control layers
+- **[Layer 1: Identity & Purpose Binding](./docs/pillars/01-identity-purpose-binding.md)**
+- **[Layer 2: Behavioral Policy Enforcement](./docs/pillars/02-behavioral-policy-enforcement.md)**
+- *Layers 3-6 specifications in progress* (see [Roadmap](./ROADMAP.md))
+
+### Technical Specifications
+- **[Telemetry Schema](./docs/specifications/telemetry-schema.md)** - JSON schema for observability
+- *Policy DSL Requirements* (planned v1.1)
+- *Drift Detection Requirements* (planned v1.1)
+
+### Security & Compliance
+- **[STRIDE Threat Model](./acr-strike-threat-model.md)** - AI-specific threats
+- **[NIST AI RMF Mapping](./acr-nist-ai-rmf-mapping.md)** - Compliance alignment
+- **[Glossary](./acr-glossary.md)** - Term definitions
+
+### Getting Started
+- **[FAQ](./docs/FAQ.md)** - Frequently asked questions
+- **[Implementation Guide](./acr-implementation-guide.md)** - Deployment guidance
+- **[Use Cases](./acr-use-cases.md)** - Real-world scenarios
 
 ---
 
@@ -471,9 +321,11 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - **v1.2 (Q3 2026):** Multi-model orchestration patterns, federated governance
 - **v2.0 (2027):** Extensions for emerging AI architectures, regulatory compliance modules
 
+See [ROADMAP.md](./ROADMAP.md) for detailed development plan.
+
 **Community:**
 - GitHub Discussions: Architecture questions, use case sharing
-- Monthly community calls: Framework evolution, implementation experiences
+- Monthly community calls: Framework evolution, implementation experiences (planned Q2 2026)
 - Working groups: Drift detection, policy languages, observability standards
 
 ---
