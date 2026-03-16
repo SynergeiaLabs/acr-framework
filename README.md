@@ -1,41 +1,68 @@
 # ACR Framework
-## Runtime Governance Architecture for Autonomous AI Systems
+## Autonomous Control & Resilience for Runtime AI Governance
 
-**Version 1.0** | [Documentation](./docs) | [Implementation Guide](./acr-implementation-guide.md) | [Threat Model](./acr-strike-threat-model.md)
+**An open reference architecture for governing autonomous AI systems in production environments.**
+
+[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
+[![Version](https://img.shields.io/badge/version-1.0-green.svg)](https://github.com/SynergeiaLabs/acr-framework/releases)
+[![Framework](https://img.shields.io/badge/type-reference%20architecture-orange.svg)]()
+
+📖 [Read the Docs](./docs) | 🎯 [Use Cases](./acr-use-cases.md) | 🔒 [Threat Model](./acr-strike-threat-model.md) | 🗺️ [NIST Mapping](./acr-nist-ai-rmf-mapping.md)
 
 ---
 
 ## Overview
 
-The **ACR Framework (Autonomous Control & Resilience)** provides runtime governance controls for autonomous AI systems operating in enterprise production environments.
+The **ACR Framework** defines a runtime governance architecture for autonomous AI systems operating in enterprise production environments.
 
-As AI systems evolve from static models into autonomous agents capable of accessing data, invoking tools, and making operational decisions, traditional governance approaches—centered on policy documentation and pre-deployment reviews—no longer provide sufficient control.
+As AI systems evolve from static models into autonomous agents—capable of accessing data, invoking tools, and making operational decisions—traditional governance approaches centered on policy documentation and pre-deployment reviews no longer provide sufficient control.
 
-**ACR adapts proven infrastructure control patterns to AI systems**, enabling organizations to enforce policy, detect drift, contain incidents, and maintain human authority during live system operation.
-
----
-
-## The Problem
-
-Traditional AI governance programs focus on:
-- Policy documentation and risk frameworks
-- Model approval workflows and impact assessments  
-- Pre-deployment testing and validation
-
-**These controls stop at deployment.** Once an AI system enters production, most organizations lack mechanisms to:
-- Enforce behavioral constraints at inference time
-- Detect when system behavior deviates from design intent
-- Respond automatically to policy violations or anomalous behavior
-- Maintain audit-grade evidence of AI decision-making
-- Intervene in real-time when high-risk actions are attempted
-
-**This gap is critical for autonomous systems** that interact with enterprise infrastructure, access sensitive data, or influence business operations.
+**ACR establishes architectural patterns for enforcing governance during live system operation**, enabling organizations to maintain control over AI behavior in production.
 
 ---
 
-## ACR Solution Architecture
+## The Governance Gap
 
-ACR introduces a **control plane** that sits between autonomous AI systems and enterprise resources, enforcing governance policy at runtime.
+Traditional AI governance programs focus on design-time controls:
+
+- **Policy frameworks:** NIST AI RMF, ISO/IEC 42001, organizational AI policies
+- **Pre-deployment reviews:** Model validation, impact assessments, approval workflows  
+- **Risk classification:** High/medium/low risk categorization, use case evaluation
+
+**These controls stop at deployment.**
+
+Once an AI system enters production, most organizations lack architectural mechanisms to:
+
+- **Enforce behavioral constraints** during inference operations
+- **Detect drift** when system behavior deviates from design intent
+- **Respond automatically** to policy violations or anomalous actions
+- **Maintain audit trails** with decision-level visibility
+- **Intervene in real-time** when high-risk actions are attempted
+
+This gap creates operational risk as autonomous systems interact with enterprise infrastructure, access sensitive data, and influence business processes.
+
+**ACR addresses this gap by defining runtime control patterns adapted from proven infrastructure governance architectures.**
+
+---
+
+## Framework Principles
+
+ACR is built on three foundational principles:
+
+### 1. Governance Must Execute at Runtime
+Policy compliance cannot be verified only at design time. Controls must operate during system execution, enforcing boundaries as the AI system processes requests, accesses resources, and generates outputs.
+
+### 2. Defense in Depth Through Layered Controls  
+No single control mechanism is sufficient. ACR defines six complementary control layers that work together to detect, prevent, and respond to governance violations.
+
+### 3. Adaptation of Proven Patterns to AI Context
+ACR does not invent runtime governance—it adapts established infrastructure control patterns (observability, policy enforcement, circuit breakers, least privilege) to the unique characteristics of non-deterministic AI systems.
+
+---
+
+## ACR Architecture
+
+ACR defines a **control plane** that mediates between autonomous AI systems and enterprise resources:
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -50,13 +77,43 @@ ACR introduces a **control plane** that sits between autonomous AI systems and e
                            │
 ┌──────────────────────────▼──────────────────────────────────┐
 │                  ACR RUNTIME CONTROL PLANE                   │
-│  ┌────────────┬─────────────┬──────────────┬──────────────┐ │
-│  │  Identity  │  Policy     │  Drift       │ Observability│ │
-│  │  Binding   │  Enforce    │  Detection   │  & Audit     │ │
-│  └────────────┴─────────────┴──────────────┴──────────────┘ │
-│  ┌─────────────────────────────┬──────────────────────────┐ │
-│  │  Self-Healing & Containment │  Human Authority         │ │
-│  └─────────────────────────────┴──────────────────────────┘ │
+│                                                              │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │          Identity & Purpose Binding Layer              │ │
+│  │   (Service identity, operational scope, capability     │ │
+│  │    authorization, resource access control)             │ │
+│  └────────────────────────────────────────────────────────┘ │
+│                           ↓                                  │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │        Behavioral Policy Enforcement Layer             │ │
+│  │   (Input validation, output filtering, action          │ │
+│  │    authorization, data handling rules)                 │ │
+│  └────────────────────────────────────────────────────────┘ │
+│                           ↓                                  │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │         Autonomy Drift Detection Layer                 │ │
+│  │   (Behavioral baselines, statistical monitoring,       │ │
+│  │    anomaly detection, deviation alerts)                │ │
+│  └────────────────────────────────────────────────────────┘ │
+│                           ↓                                  │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │           Execution Observability Layer                │ │
+│  │   (Structured telemetry, audit trails, decision        │ │
+│  │    lineage, compliance evidence)                       │ │
+│  └────────────────────────────────────────────────────────┘ │
+│                           ↓                                  │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │         Self-Healing & Containment Layer               │ │
+│  │   (Automated response, capability restriction,         │ │
+│  │    circuit breakers, escalation triggers)              │ │
+│  └────────────────────────────────────────────────────────┘ │
+│                           ↓                                  │
+│  ┌────────────────────────────────────────────────────────┐ │
+│  │              Human Authority Layer                     │ │
+│  │   (Manual intervention, approval workflows,            │ │
+│  │    override mechanisms, kill switches)                 │ │
+│  └────────────────────────────────────────────────────────┘ │
+│                                                              │
 └──────────────────────────┬──────────────────────────────────┘
                            │
 ┌──────────────────────────▼──────────────────────────────────┐
@@ -65,412 +122,316 @@ ACR introduces a **control plane** that sits between autonomous AI systems and e
 └─────────────────────────────────────────────────────────────┘
 ```
 
-**Key Principle:** Governance controls execute at runtime, not just design time.
+**The control plane enforces governance policy at runtime through six complementary control layers.**
+
+See [ACR Control Plane Architecture](./acr-control-plane-architecture.md) for detailed design.
 
 ---
 
-## Core Control Layers
+## Control Layer Specifications
 
-ACR defines six operational control layers that work together to govern autonomous AI systems:
+### Layer 1: Identity & Purpose Binding
 
-### 1. Identity & Purpose Binding
-**What it controls:** System identity, authorized capabilities, operational scope
+**Purpose:** Establish and enforce the operational identity and authorized scope of each AI system.
 
-Every AI system operates with a cryptographically-bound identity tied to:
-- **Defined purpose:** Specific business function or use case
-- **Authorized data sources:** Explicit allow-list of accessible resources  
-- **Tool permissions:** Scoped capabilities (read/write, API access)
-- **Operational boundaries:** Geographic, temporal, or domain constraints
+**Control objectives:**
+- Cryptographically bind AI systems to defined identities
+- Scope capabilities to specific business purposes
+- Authorize access only to required resources
+- Prevent operational scope expansion without approval
 
-**Implementation mechanisms:**
-- Service identity tokens (JWT, SPIFFE)
-- Purpose-based RBAC policies
+**Architectural patterns:**
+- Service identity tokens (JWT, SPIFFE/SPIRE, x.509)
+- Purpose-based role assignments (RBAC, ABAC)
 - Resource access control lists
-- API key scoping and rotation
+- Capability authorization matrices
 
-**Enforcement point:** API gateway, service mesh, or SDK wrapper
+**Enforcement points:** API gateways, service mesh policy enforcement, SDK authorization layers
 
-**Failure mode:** Deny by default—unbound systems cannot execute
+**Failure mode:** Deny by default—systems without valid identity bindings cannot execute
+
+See [Identity & Purpose Binding Specification](./docs/pillars/01-identity-purpose-binding.md)
 
 ---
 
-### 2. Behavioral Policy Enforcement
-**What it controls:** Input constraints, output filtering, action authorization, data handling
+### Layer 2: Behavioral Policy Enforcement
 
-Governance policies translate into machine-enforceable rules executed at inference time:
+**Purpose:** Translate governance policies into machine-enforceable runtime rules.
+
+**Control objectives:**
+- Validate inputs against security and compliance policies
+- Filter outputs to prevent data leakage and policy violations
+- Authorize actions before execution
+- Enforce data handling requirements
 
 **Policy categories:**
-- **Input validation:** Prompt injection detection, input sanitization
-- **Output filtering:** PII redaction, content safety, hallucination detection
-- **Action authorization:** Tool invocation approval, multi-step workflow gating
-- **Data handling:** Retention limits, access logging, encryption requirements
+- **Input validation:** Prompt injection detection, schema validation, input sanitization
+- **Output filtering:** PII redaction, content safety, hallucination detection, response constraints
+- **Action authorization:** Tool invocation approval, resource modification gating, multi-step workflow controls
+- **Data handling:** Retention enforcement, encryption requirements, access logging, classification labels
 
-**Implementation mechanisms:**
-- Policy-as-code engines (Open Policy Agent, Cedar, custom DSL)
-- Content filtering APIs (Azure Content Safety, Anthropic Claude moderation)
+**Architectural patterns:**
+- Policy-as-code engines (OPA, Cedar, Rego)
 - Rule-based validators (regex, schema validation)
-- ML-based classifiers (toxicity, PII detection)
+- ML-based classifiers (content safety, PII detection)
+- Decision caching and policy versioning
 
-**Enforcement point:** Pre-inference (input), post-inference (output), per-action (tools)
+**Enforcement points:** Pre-inference (inputs), post-inference (outputs), per-action (tool calls)
 
-**Latency budget:** Target <50ms added latency per policy check
+**Design considerations:**
+- Latency budget: <50ms policy evaluation overhead target
+- Fail-safe defaults: Deny on policy engine failure
+- Policy conflict resolution: Explicit precedence rules required
 
-**Example policy (YAML DSL):**
-```yaml
-agent_id: customer-support-agent
-purpose: handle_billing_inquiries
-policies:
-  input:
-    - deny_sql_injection
-    - deny_prompt_jailbreak
-  output:
-    - redact_pii
-    - block_financial_advice
-  tools:
-    - allow: [query_billing_db, send_email]
-    - deny: [delete_account, refund_transaction]
-```
+See [Behavioral Policy Enforcement Specification](./docs/pillars/02-behavioral-policy-enforcement.md)
 
 ---
 
-### 3. Autonomy Drift Detection
-**What it controls:** Behavioral consistency, capability scope creep, unauthorized adaptation
+### Layer 3: Autonomy Drift Detection
 
-AI systems evolve as prompts change, tools expand, and workflows grow. Drift detection identifies when system behavior deviates from baseline operation.
+**Purpose:** Identify when AI system behavior deviates from established operational baselines.
+
+**Control objectives:**
+- Establish behavioral baselines during normal operation
+- Monitor operational metrics for statistical deviations
+- Alert on significant behavioral changes
+- Trigger containment when drift exceeds thresholds
 
 **Drift indicators:**
-- **Prompt embedding distance:** Semantic shift in input patterns
-- **Tool invocation frequency:** Unexpected increase in specific API calls
-- **Output distribution shift:** Changes in response length, tone, or content type
-- **Resource consumption:** Sudden spikes in token usage or inference cost
-- **Error rate anomalies:** Increased policy violations or failed actions
+- **Prompt patterns:** Semantic embedding distance from baseline inputs
+- **Tool usage:** Frequency and sequencing changes in API invocations
+- **Output characteristics:** Distribution shifts in response length, sentiment, topic
+- **Resource consumption:** Anomalous token usage, cost patterns, latency
+- **Error rates:** Increased policy violations or failed actions
 
-**Detection methods:**
-- Statistical process control (SPC) on telemetry metrics
-- Embedding-based similarity scoring (cosine distance from baseline)
-- Anomaly detection models (Isolation Forest, Autoencoders)
-- Rule-based thresholds (configurable per-metric)
+**Detection methodologies:**
+- Statistical process control (control charts, threshold-based alerts)
+- Embedding similarity analysis (cosine distance, Mahalanobis distance)
+- Anomaly detection models (Isolation Forest, autoencoders, Gaussian mixture)
+- Time-series forecasting (ARIMA, Prophet)
 
 **Baseline establishment:**
-- Capture 7-30 days of normal operation
-- Generate statistical profiles (mean, std dev, percentiles)
-- Update baselines quarterly or post-deployment changes
+- Minimum observation window: 7-30 days of production traffic
+- Statistical profiling: Mean, standard deviation, percentiles per metric
+- Baseline refresh: Quarterly or post-configuration change
+- Multi-modal baselines: Support for expected behavioral variations
 
 **Alert thresholds:**
-- **Green:** <2σ deviation, no action
-- **Amber:** 2-3σ deviation, log and monitor
-- **Red:** >3σ deviation, trigger containment
+- **Normal (Green):** <2σ deviation from baseline
+- **Warning (Amber):** 2-3σ deviation, log and monitor
+- **Critical (Red):** >3σ deviation, trigger containment
 
-**Implementation:** Real-time telemetry analysis pipeline (Prometheus, Datadog, custom)
+See [Autonomy Drift Detection Specification](./docs/pillars/03-autonomy-drift-detection.md)
 
 ---
 
-### 4. Execution Observability
-**What it controls:** Audit trails, decision lineage, compliance evidence
+### Layer 4: Execution Observability
 
-Traditional governance lacks visibility into AI execution. ACR mandates structured telemetry capture for all AI operations.
+**Purpose:** Provide comprehensive visibility into AI system operations for audit, analysis, and compliance.
 
-**Telemetry schema (JSON):**
-```json
-{
-  "event_id": "uuid",
-  "timestamp": "ISO8601",
-  "agent_id": "customer-support-agent",
-  "purpose": "handle_billing_inquiries",
-  "user_id": "user-12345",
-  "session_id": "session-67890",
-  "input": {
-    "prompt": "Why was I charged twice?",
-    "context": ["user_account_history", "recent_transactions"],
-    "tools_available": ["query_billing_db", "send_email"]
-  },
-  "policy_decisions": [
-    {"policy_id": "deny_sql_injection", "result": "pass", "latency_ms": 12},
-    {"policy_id": "redact_pii", "result": "pass", "latency_ms": 8}
-  ],
-  "model": {
-    "provider": "anthropic",
-    "model_id": "claude-sonnet-4",
-    "temperature": 0.7,
-    "max_tokens": 1024
-  },
-  "output": {
-    "completion": "I see two charges on your account...",
-    "tool_calls": [
-      {"tool": "query_billing_db", "params": {"user_id": "12345"}, "result": "..."}
-    ],
-    "tokens_used": 487
-  },
-  "drift_score": 0.12,
-  "total_latency_ms": 2341,
-  "cost_usd": 0.0043
-}
-```
+**Control objectives:**
+- Capture structured telemetry for all AI operations
+- Maintain immutable audit trails
+- Enable decision lineage reconstruction
+- Generate compliance evidence
+
+**Telemetry requirements:**
+- **Event identification:** Unique event ID, timestamp, correlation IDs
+- **System context:** Agent ID, model provider/version, configuration
+- **Request context:** User ID, session ID, purpose/intent
+- **Input capture:** Prompts, context, available tools/resources
+- **Policy decisions:** All policy evaluations and results
+- **Execution trace:** Tool invocations, API calls, reasoning steps
+- **Output capture:** Completions, tool results, final responses
+- **Operational metrics:** Latency, token usage, cost, drift scores
 
 **Storage requirements:**
-- Immutable append-only log (tamper-evident)
-- Retention: 90 days minimum (configurable per compliance regime)
-- Queryable by agent_id, user_id, session_id, timestamp, policy_decision
-- Exportable to SIEM (Splunk, Sentinel) or data lake (S3, BigQuery)
+- Immutable append-only logs (tamper-evident)
+- Minimum retention: 90 days (extend per compliance regime)
+- Queryable by: agent_id, user_id, session_id, timestamp, policy_decision
+- Export capabilities: SIEM integration, data lake, compliance systems
 
-**Integration:** OpenTelemetry traces, structured logging (JSON), custom exporters
+**Architectural patterns:**
+- Structured logging (JSON, Protocol Buffers)
+- Distributed tracing (OpenTelemetry, Jaeger)
+- Event streaming (Kafka, Kinesis)
+- Time-series databases (InfluxDB, TimescaleDB)
+
+See [Execution Observability Specification](./docs/pillars/04-execution-observability.md)
 
 ---
 
-### 5. Self-Healing & Containment
-**What it controls:** Incident response, automated degradation, kill switches
+### Layer 5: Self-Healing & Containment
 
-Autonomous systems require rapid containment when policy violations or drift are detected.
+**Purpose:** Enable automated response to policy violations, drift detection, and operational anomalies.
 
-**Automated response actions:**
-- **Capability restriction:** Revoke tool access, switch to read-only mode
-- **Workflow interruption:** Pause multi-step processes, require approval
-- **System isolation:** Quarantine agent, block external API calls
-- **Graceful degradation:** Fallback to simpler model or rule-based system
-- **Human escalation:** Page on-call engineer, create incident ticket
+**Control objectives:**
+- Detect incidents requiring containment
+- Execute automated mitigation actions
+- Prevent incident escalation
+- Trigger human escalation when required
+
+**Response mechanisms:**
+- **Capability restriction:** Revoke tool access, limit data sources, reduce permissions
+- **Workflow interruption:** Pause multi-step processes, require approval for continuation
+- **System isolation:** Quarantine agent, block external communications
+- **Graceful degradation:** Fallback to constrained operation mode, simpler models
+- **Human escalation:** Alert on-call teams, create incident records
 
 **Triggering criteria:**
-- Policy violation severity score >0.8
-- Drift detection threshold exceeded (Red alert)
-- Repeated failed actions (5+ in 60 seconds)
-- Cost threshold breach (>$100/hour)
+- Policy violation severity thresholds
+- Drift detection critical alerts
+- Repeated failed actions or errors
+- Cost or rate limit breaches
 - Manual kill switch activation
 
-**Response decision matrix:**
-
-| Trigger | Severity | Action | Approval Required |
-|---------|----------|--------|-------------------|
-| Prompt injection detected | High | Block request | No |
-| PII in output | High | Redact + log | No |
-| Drift score >3σ | Medium | Restrict tools | Yes (async) |
-| Cost spike >$50/hr | Medium | Rate limit | Yes (async) |
-| Manual kill switch | Critical | Isolate system | Yes (sync) |
-
 **Recovery protocols:**
-- Automated: Resume after 5min cooldown if no repeat violations
-- Manual: Require engineer approval via dashboard or API
-- Runbook: Documented restoration procedures per incident type
+- Automated recovery: Resume after cooldown if no repeat violations
+- Manual approval: Require engineer review via dashboard/API
+- Incident analysis: Root cause investigation before restoration
+- Baseline update: Refresh drift baselines post-recovery
 
-**Implementation:** Circuit breaker pattern, policy engine actions, alerting webhooks
+**Design considerations:**
+- Circuit breaker patterns for cascading failure prevention
+- Idempotent recovery operations
+- State preservation during containment
+- Audit logging of all containment actions
+
+See [Self-Healing & Containment Specification](./docs/pillars/05-self-healing-containment.md)
 
 ---
 
-### 6. Human Authority
-**What it controls:** Override mechanisms, escalation paths, final decision rights
+### Layer 6: Human Authority
 
-ACR preserves human control over autonomous systems through multiple intervention points.
+**Purpose:** Preserve human oversight and intervention capability over autonomous AI operations.
+
+**Control objectives:**
+- Enable real-time human intervention
+- Establish approval workflows for high-risk actions
+- Maintain override mechanisms
+- Define escalation paths with SLAs
 
 **Intervention mechanisms:**
 - **Pre-action approval:** High-risk operations gate on human review
-- **Real-time override:** Kill switch, capability revocation via dashboard
-- **Post-hoc audit:** Review and rollback of automated decisions
-- **Policy modification:** Update rules without code deployment
+- **Real-time override:** Kill switches, capability revocation via dashboard/API
+- **Post-hoc review:** Audit and rollback of automated decisions
+- **Policy modification:** Update enforcement rules without code deployment
 
 **Escalation tiers:**
-| Tier | Trigger | Response Time SLA | Authority |
-|------|---------|-------------------|-----------|
-| L1 - Automated | Policy violation | <1 second | System |
-| L2 - On-call review | Drift alert, cost spike | <15 minutes | SRE/Security |
-| L3 - Manager approval | High-risk action | <4 hours | Business owner |
-| L4 - Executive decision | Regulatory/legal risk | <24 hours | CISO/Legal |
+
+| Tier | Trigger | Response SLA | Authority |
+|------|---------|--------------|-----------|
+| L0 - Automated | Policy violation | <1 second | Control plane |
+| L1 - On-call | Drift alert, anomaly | <15 minutes | Operations/Security |
+| L2 - Management | High-risk action request | <4 hours | Business owner |
+| L3 - Executive | Regulatory/legal concern | <24 hours | CISO/Legal |
 
 **Human-in-the-loop patterns:**
-- **Synchronous gating:** Block action until approval received (high latency)
-- **Asynchronous review:** Allow action, flag for post-hoc review (low latency)
-- **Threshold-based:** Auto-approve below limit, gate above (balanced)
+- **Synchronous gating:** Block operation until approval (high latency, high assurance)
+- **Asynchronous review:** Allow operation, flag for post-review (low latency, lower assurance)
+- **Threshold-based:** Auto-approve below limit, gate above (balanced approach)
 
-**Implementation:** Approval API, admin dashboard, Slack/PagerDuty integrations
-
----
-
-## Reference Implementation Patterns
-
-ACR can be deployed using multiple architectural patterns. Choose based on your infrastructure and latency requirements.
-
-### Pattern A: API Gateway (Recommended for centralized control)
-```
-AI Application → ACR Gateway (Envoy/Kong + OPA) → Model API
-```
-**Pros:** Centralized enforcement, language-agnostic, audit point  
-**Cons:** Single point of failure, added network hop (~20-50ms)  
-**Use case:** Multiple applications, strict compliance requirements
-
-### Pattern B: SDK/Library (Recommended for low latency)
-```
-AI Application → ACR SDK → Model API
-```
-**Pros:** Low latency (<10ms overhead), distributed failure domain  
-**Cons:** Requires SDK adoption per language, version management  
-**Use case:** Performance-critical applications, homogeneous tech stack
-
-### Pattern C: Sidecar (Recommended for Kubernetes)
-```
-AI Pod → ACR Sidecar → Model API
-```
-**Pros:** Infrastructure-enforced, works with legacy apps  
-**Cons:** Resource overhead, platform-specific  
-**Use case:** Kubernetes/service mesh environments, zero-trust architectures
-
-**See [Implementation Guide](./acr-implementation-guide.md) for detailed deployment instructions.**
+See [Human Authority Specification](./docs/pillars/06-human-authority.md)
 
 ---
 
-## Metrics & Observability
+## Implementation Approaches
 
-ACR defines standard KPIs for measuring governance effectiveness:
+ACR is an **architectural framework**, not a prescriptive implementation. Organizations can implement ACR controls using multiple approaches:
 
-### Policy Enforcement Metrics
-- **Policy decision latency (p50, p95, p99):** Target <50ms
-- **Policy violation rate:** Violations per 1000 requests
-- **False positive rate:** Incorrectly blocked legitimate requests
-- **Policy coverage:** % of requests evaluated by at least one policy
+### Deployment Patterns
 
-### Drift Detection Metrics
-- **Drift alert frequency:** Alerts per day/week
-- **Drift score distribution:** Histogram of deviation magnitudes
-- **False drift rate:** Alerts not corresponding to actual issues
-- **Baseline staleness:** Days since last baseline update
+**API Gateway Pattern**
+- Deploy control plane as reverse proxy (Envoy, Kong, NGINX)
+- Intercept all model API traffic
+- Centralized enforcement, language-agnostic
+- Trade-off: Network hop adds latency, single point of failure
 
-### Containment Metrics
-- **Mean time to detect (MTTD):** Time from violation to alert
-- **Mean time to contain (MTTC):** Time from alert to mitigation
-- **Containment action success rate:** % of automated responses effective
-- **Manual intervention frequency:** Escalations requiring human action
+**SDK/Library Pattern**  
+- Embed control logic in application code
+- Wrap model API clients with governance layer
+- Low latency, distributed failure domain
+- Trade-off: Requires per-language SDK, version management
 
-### Cost & Performance
-- **Total governance overhead:** Added latency + infrastructure cost
-- **Cost per governed request:** Amortized ACR infrastructure cost
-- **Throughput impact:** Requests/sec with vs without ACR
-- **Resource utilization:** CPU/memory consumption of control plane
+**Sidecar Pattern**
+- Deploy control plane as sidecar container
+- Intercept traffic at network layer (service mesh)
+- Infrastructure-enforced, platform-native
+- Trade-off: Kubernetes/mesh dependency, complexity
 
-**Dashboard templates available in [monitoring/](./monitoring/) directory.**
+**Control Plane Service Pattern**
+- Separate governance service layer
+- Applications call control plane for policy decisions
+- Centralized logic, flexible integration
+- Trade-off: Additional network calls, latency sensitive
+
+Organizations select patterns based on infrastructure, latency requirements, and operational constraints.
+
+See [Implementation Guide](./acr-implementation-guide.md) for detailed deployment architectures.
 
 ---
 
-## Compliance & Standards Mapping
+## Standards & Compliance Alignment
 
-ACR aligns with established AI governance frameworks:
+ACR complements established AI governance and security frameworks:
 
 ### NIST AI Risk Management Framework (AI RMF)
-- **GOVERN:** Policy enforcement, human authority
-- **MAP:** Identity binding, purpose definition
-- **MEASURE:** Execution observability, drift detection
-- **MANAGE:** Self-healing, containment, incident response
+- **GOVERN:** Organizational structures, policies → *ACR enforcement mechanisms*
+- **MAP:** Risk identification, context → *Identity binding, threat modeling*
+- **MEASURE:** Metrics, monitoring → *Observability, drift detection*
+- **MANAGE:** Risk response, mitigation → *Policy enforcement, containment*
 
 ### ISO/IEC 42001 (AI Management Systems)
-- **Clause 6.1.3 (Risk Assessment):** Drift detection, threat modeling
-- **Clause 8.2 (Operation):** Runtime policy enforcement
-- **Clause 9.1 (Monitoring):** Execution observability
-- **Clause 10.1 (Nonconformity):** Containment, corrective actions
+- **Clause 6.1 (Risk Management):** Risk assessment → *Drift detection, threat model*
+- **Clause 8.2 (Operation):** Operational controls → *Policy enforcement, observability*
+- **Clause 9.1 (Monitoring):** Performance monitoring → *Telemetry, metrics*
+- **Clause 10.1 (Nonconformity):** Corrective action → *Containment, incident response*
 
-### SOC 2 Type II
-- **CC6.1 (Logical Access):** Identity binding, RBAC
-- **CC7.2 (System Monitoring):** Observability, alerting
-- **CC8.1 (Change Management):** Drift detection, baseline control
-- **PI1.4 (Data Privacy):** Output filtering, PII redaction
+### SOC 2 Type II Controls
+- **CC6.1 (Logical Access):** Access controls → *Identity binding, RBAC*
+- **CC7.2 (System Monitoring):** Monitoring controls → *Observability, alerting*
+- **CC8.1 (Change Management):** Change controls → *Drift detection, baselines*
+- **PI1.4 (Privacy):** Data privacy → *Output filtering, PII redaction*
 
-**Detailed mappings: [acr-nist-ai-rmf-mapping.md](./acr-nist-ai-rmf-mapping.md)**
+See [NIST AI RMF Mapping](./acr-nist-ai-rmf-mapping.md) for detailed control mappings.
 
 ---
 
 ## Threat Model
 
-ACR addresses STRIDE threats specific to autonomous AI systems:
+ACR addresses threats specific to autonomous AI systems, organized by STRIDE categories:
 
-| Threat Category | Attack Vector | ACR Control |
-|-----------------|---------------|-------------|
-| **Spoofing** | Agent impersonation | Identity binding, service tokens |
-| **Tampering** | Prompt injection, jailbreaking | Input validation policies |
-| **Repudiation** | Denied malicious actions | Immutable audit logs |
-| **Information Disclosure** | Data exfiltration via outputs | Output filtering, PII redaction |
-| **Denial of Service** | Resource exhaustion, cost attacks | Rate limiting, quota enforcement |
-| **Elevation of Privilege** | Unauthorized tool access | Purpose binding, least-privilege |
+| Threat | Attack Vector | ACR Control Layer |
+|--------|---------------|-------------------|
+| **Spoofing** | Agent impersonation, identity theft | Identity & Purpose Binding |
+| **Tampering** | Prompt injection, jailbreaking, context manipulation | Behavioral Policy Enforcement |
+| **Repudiation** | Denied malicious actions, log manipulation | Execution Observability |
+| **Information Disclosure** | Data exfiltration, PII leakage, credential exposure | Behavioral Policy (output filtering) |
+| **Denial of Service** | Resource exhaustion, cost attacks, infinite loops | Self-Healing & Containment |
+| **Elevation of Privilege** | Unauthorized tool access, capability escalation | Identity Binding + Policy Enforcement |
 
 **Additional AI-specific threats:**
-- **Model inversion:** Extract training data → Output filtering
-- **Membership inference:** Identify training examples → Access controls
-- **Prompt leaking:** Expose system prompts → Input sanitization
-- **Tool misuse:** Invoke unauthorized APIs → Behavioral policy
+- **Model manipulation:** Adversarial inputs, gradient attacks → Input validation policies
+- **Training data extraction:** Model inversion → Output filtering, access controls
+- **Prompt leaking:** System prompt exposure → Input sanitization, output filtering
+- **Tool misuse:** Unauthorized API invocations → Purpose binding, action authorization
+- **Context pollution:** Malicious context injection → Context validation, drift detection
 
-**Full threat model: [acr-strike-threat-model.md](./acr-strike-threat-model.md)**
-
----
-
-## Getting Started
-
-### Prerequisites
-- AI system with API-based model access (OpenAI, Anthropic, Azure OpenAI, etc.)
-- Infrastructure for policy enforcement (API gateway, Kubernetes, or SDK runtime)
-- Observability stack (Prometheus, Datadog, or equivalent)
-- Identity provider (OAuth2, SPIFFE, or service accounts)
-
-### Quick Start (Python SDK Example)
-
-**1. Install ACR SDK (hypothetical - reference implementation TBD)**
-```bash
-pip install acr-runtime
-```
-
-**2. Configure agent identity and policies**
-```python
-from acr_runtime import ACRAgent, Policy
-
-agent = ACRAgent(
-    agent_id="customer-support-agent",
-    purpose="handle_billing_inquiries",
-    model="claude-sonnet-4",
-    policies=[
-        Policy.deny_sql_injection(),
-        Policy.redact_pii(),
-        Policy.block_financial_advice()
-    ]
-)
-```
-
-**3. Execute governed inference**
-```python
-response = agent.chat(
-    prompt="Why was I charged twice?",
-    user_id="user-12345"
-)
-
-# ACR automatically:
-# - Validates input against policies
-# - Logs request to audit trail
-# - Enforces output filtering
-# - Monitors for drift
-# - Reports metrics
-```
-
-**See [Implementation Guide](./acr-implementation-guide.md) for production deployment.**
+See [ACR STRIDE Threat Model](./acr-strike-threat-model.md) for comprehensive threat analysis.
 
 ---
 
-## Roadmap
+## Use Cases
 
-### Current (v1.0)
-- ✅ Conceptual framework and control layer definitions
-- ✅ NIST AI RMF and ISO 42001 mappings
-- ✅ STRIDE threat model
-- ✅ Reference architecture patterns
+ACR applies to autonomous AI systems across enterprise contexts:
 
-### In Progress (v1.1 - Q2 2026)
-- 🚧 Reference implementation (Python SDK)
-- 🚧 Policy DSL specification and validator
-- 🚧 OpenTelemetry telemetry schema
-- 🚧 Baseline drift detection algorithms
+- **Customer Service Agents:** Enforce data privacy, prevent unauthorized discounts, detect tone drift
+- **Data Analysis Agents:** Control database access, prevent SQL injection, monitor query patterns
+- **Code Generation Agents:** Restrict file system access, block credential exposure, detect malicious code patterns
+- **Document Processing Agents:** Enforce PII handling, control external API calls, monitor extraction accuracy
+- **Multi-Agent Workflows:** Coordinate inter-agent authorization, maintain workflow audit trails, contain cascading failures
 
-### Planned (v1.2 - Q3 2026)
-- 📋 API gateway reference implementation (Envoy + OPA)
-- 📋 Kubernetes operator for sidecar deployment
-- 📋 Pre-built policy library (common use cases)
-- 📋 Compliance evidence bundle generator (SOC 2, ISO)
-
-### Future (v2.0+)
-- 📋 Multi-model orchestration and policy inheritance
-- 📋 Federated governance across model providers
-- 📋 Automated policy learning from human feedback
-- 📋 Economic cost modeling and optimization
+See [ACR Use Cases](./acr-use-cases.md) for detailed scenarios and control applications.
 
 ---
 
@@ -479,20 +440,58 @@ response = agent.chat(
 ACR is an open framework designed to evolve with the autonomous AI ecosystem.
 
 **Contribution areas:**
-- Reference implementations (SDKs, gateways, operators)
-- Policy libraries and templates
-- Drift detection algorithms
-- Threat models and attack patterns
-- Compliance mappings (EU AI Act, industry-specific regulations)
-- Case studies and deployment patterns
+- Control layer refinements and extensions
+- Implementation pattern documentation
+- Threat model expansion (new attack vectors, mitigations)
+- Standards mappings (EU AI Act, sector-specific regulations)
+- Case studies and deployment experiences
+- Research on drift detection, policy languages, observability schemas
 
-**Process:**
-1. Open an issue describing the proposed contribution
-2. Discuss approach and alignment with ACR principles
-3. Submit PR with implementation + documentation
-4. Review and merge
+**Contribution process:**
+1. Review existing issues and discussions
+2. Open issue describing proposed contribution
+3. Discuss approach and alignment with ACR principles
+4. Submit pull request with documentation updates
+5. Community review and merge
 
-**See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.**
+**Code contributions:**
+ACR is an architectural framework—reference implementations are welcome but maintained separately. The core framework repository focuses on specifications, design patterns, and architectural guidance.
+
+See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
+
+---
+
+## Framework Governance
+
+**Maintainer:** Adam DiStefano ([@SynergeiaLabs](https://github.com/SynergeiaLabs))
+
+**Roadmap:**
+- **v1.0 (Current):** Core six-layer architecture, NIST/ISO mappings, threat model
+- **v1.1 (Q2 2026):** Expanded implementation patterns, telemetry schema standardization
+- **v1.2 (Q3 2026):** Multi-model orchestration patterns, federated governance
+- **v2.0 (2027):** Extensions for emerging AI architectures, regulatory compliance modules
+
+**Community:**
+- GitHub Discussions: Architecture questions, use case sharing
+- Monthly community calls: Framework evolution, implementation experiences
+- Working groups: Drift detection, policy languages, observability standards
+
+---
+
+## Implementations
+
+Organizations and vendors implementing ACR-aligned solutions:
+
+**Open Source:**
+- *[Add community implementations as they emerge]*
+
+**Commercial:**
+- *[Products implementing ACR patterns can self-register here]*
+
+**Research:**
+- *[Academic implementations and extensions]*
+
+**Note:** ACR is a framework specification. Listed implementations may vary in completeness and interpretation of ACR principles.
 
 ---
 
@@ -500,31 +499,35 @@ ACR is an open framework designed to evolve with the autonomous AI ecosystem.
 
 Apache 2.0 License - see [LICENSE](./LICENSE)
 
----
-
-## Author & Maintainers
-
-**Created by:** Adam DiStefano  
-**Maintained by:** Synergeia Labs  
-
-**Contact:** [GitHub Issues](https://github.com/SynergeiaLabs/acr-framework/issues) | [autonomouscontrol.io](https://autonomouscontrol.io)
+This framework is freely available for use, modification, and distribution. Commercial implementations are encouraged.
 
 ---
 
 ## Citation
 
-If you use ACR Framework in research or commercial systems, please cite:
+If you reference ACR Framework in research or publications:
 
 ```bibtex
-@misc{acr-framework,
+@misc{acr-framework-2026,
   author = {DiStefano, Adam},
-  title = {ACR Framework: Runtime Governance Architecture for Autonomous AI Systems},
+  title = {ACR Framework: Autonomous Control \& Resilience for Runtime AI Governance},
   year = {2026},
   publisher = {GitHub},
-  url = {https://github.com/SynergeiaLabs/acr-framework}
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/SynergeiaLabs/acr-framework}},
+  version = {1.0}
 }
 ```
 
 ---
 
-**Last Updated:** March 2026 | **Version:** 1.0.0
+## Resources
+
+- **Website:** [autonomouscontrol.io](https://autonomouscontrol.io)
+- **Documentation:** [/docs](./docs)
+- **Discussions:** [GitHub Discussions](https://github.com/SynergeiaLabs/acr-framework/discussions)
+- **Issues:** [GitHub Issues](https://github.com/SynergeiaLabs/acr-framework/issues)
+
+---
+
+**ACR Framework v1.0** | March 2026 | Runtime Governance for Autonomous AI
