@@ -310,7 +310,7 @@ Technical deep-dive path:
 ### I'm a security professional. What's most relevant?
 
 Security-focused resources:
-1. [STRIDE Threat Model](../acr-strike-threat-model.md)
+1. [STRIKE Threat Model](../acr-strike-threat-model.md)
 2. [Behavioral Policy Enforcement](docs/pillars/02-behavioral-policy-enforcement.md)
 3. [Self-Healing & Containment](docs/pillars/05-self-healing-containment.md)
 4. [Identity & Purpose Binding](docs/pillars/01-identity-purpose-binding.md)
