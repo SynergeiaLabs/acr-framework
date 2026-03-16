@@ -8,7 +8,12 @@ As AI systems evolve from static models into **autonomous agents capable of inte
 ACR introduces a **runtime control architecture** that allows organizations to monitor, constrain, and intervene in AI system behavior while those systems are operating in production environments.
 
 ---
+## ACR Framework Architecture
 
+![ACR Framework](./a_digital_infographic_titled_acr_framework_depic.png)
+*Figure 1. The ACR Framework defines six runtime governance control layers for autonomous AI systems: Identity & Purpose Binding, Behavioral Policy Enforcement, Autonomy Drift Detection, Execution Observability, Self-Healing & Containment, and Human Authority.*
+
+---
 # Why ACR Exists
 
 Most enterprise AI governance programs today focus on:
