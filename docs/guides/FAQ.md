@@ -58,7 +58,7 @@ ACR provides architectural patterns, not code. Implementation approaches:
 3. **Open source tools:** Combine existing tools (OPA, OpenTelemetry, etc.) per ACR patterns
 4. **Hybrid:** Implement some layers internally, use vendors for others
 
-See [Implementation Guide](../acr-implementation-guide.md) for detailed deployment architectures.
+See [Implementation Guide](./acr-implementation-guide.md) for detailed deployment architectures.
 
 ### What's the performance overhead of ACR?
 
@@ -124,7 +124,7 @@ Yes, with adaptations:
 
 **ACR:** Architectural patterns for *how* to enforce those requirements at runtime in production systems.
 
-**Relationship:** ACR implements the technical controls required by NIST/ISO. See [NIST AI RMF Mapping](../acr-nist-ai-rmf-mapping.md).
+**Relationship:** ACR implements the technical controls required by NIST/ISO. See [NIST AI RMF Mapping](../compliance/acr-nist-ai-rmf-mapping.md).
 
 ### How does ACR relate to MLOps or model governance platforms?
 
@@ -165,7 +165,7 @@ Yes. ACR controls map to SOC 2 Trust Service Criteria:
 - CC8.1 (Change Management): Drift Detection
 - PI1.4 (Privacy): Behavioral Policy Enforcement
 
-See [SOC 2 Mapping](docs/compliance/acr-soc2-mapping.md) (planned for v1.1).
+See [SOC 2 Mapping](../compliance/acr-soc2-mapping.md) (planned for v1.1).
 
 ---
 
@@ -184,7 +184,7 @@ Drift detection approaches in ACR Layer 3:
 - **Embedding-based:** Measure semantic distance between current and baseline prompts
 - **Behavioral:** Track changes in tool usage patterns, API calls, output characteristics
 
-See [Autonomy Drift Detection Specification](docs/pillars/03-autonomy-drift-detection.md) for details.
+See [Autonomy Drift Detection Specification](../pillars/03-autonomy-drift-detection.md) for details.
 
 ### How do I handle policy conflicts?
 
@@ -227,17 +227,17 @@ Contributions welcome in several areas:
 - Threat model expansion
 - Implementation guidance
 
-See [CONTRIBUTING.md](../CONTRIBUTING.md) for detailed process.
+See [CONTRIBUTING.md](../../CONTRIBUTING.md) for detailed process.
 
 ### Is there a reference implementation?
 
 Not yet. ACR v1.0 is specification-only. Reference implementations (open source and commercial) are expected as the framework matures.
 
-Organizations implementing ACR are encouraged to share their architectures (see [Implementations](../README.md#implementations)).
+Organizations implementing ACR are encouraged to share their architectures (see [Implementations](../../README.md#implementations)).
 
 ### Can I list my commercial product as ACR-compliant?
 
-Yes, if your product implements ACR specifications. Add your product to the [Implementations section](../README.md#implementations) via pull request with:
+Yes, if your product implements ACR specifications. Add your product to the [Implementations section](../../README.md#implementations) via pull request with:
 - Product name and description
 - Which ACR layers are implemented
 - Deployment patterns supported
@@ -260,7 +260,7 @@ ACR is a framework, not a product, so there's no official support. Resources:
 
 ### What's on the ACR roadmap?
 
-See [ROADMAP.md](../ROADMAP.md) for detailed plans. Highlights:
+See [ROADMAP.md](../../ROADMAP.md) for detailed plans. Highlights:
 - **v1.1 (Q2 2026):** Detailed pillar specs, telemetry schema, deployment patterns
 - **v1.2 (Q3 2026):** EU AI Act mapping, multi-model orchestration, advanced threat model
 - **v1.3 (Q4 2026):** Maturity model, operational runbooks, metrics framework
@@ -292,36 +292,36 @@ Major architectural changes require RFC (Request for Comments) and extended comm
 ### I'm new to AI governance. Where should I start?
 
 Recommended learning path:
-1. Read [ACR Framework README](../README.md) for overview
-2. Review [Use Cases](../acr-use-cases.md) for practical examples
-3. Study [Execution Observability](docs/pillars/04-execution-observability.md) (easiest layer to understand)
-4. Explore [Implementation Guide](../acr-implementation-guide.md) for deployment patterns
+1. Read [ACR Framework README](../../README.md) for overview
+2. Review [Use Cases](./acr-use-cases.md) for practical examples
+3. Study [Execution Observability](../pillars/04-execution-observability.md) (easiest layer to understand)
+4. Explore [Implementation Guide](./acr-implementation-guide.md) for deployment patterns
 5. Join community discussions to ask questions
 
 ### I'm an architect. What should I read first?
 
 Technical deep-dive path:
-1. [ACR Control Plane Architecture](../acr-control-plane-architecture.md)
-2. [Reference Architecture](../acr-runtime-architecture.md)
-3. [Telemetry Schema Specification](docs/specifications/telemetry-schema.md)
-4. [Deployment Patterns](docs/deployment-patterns/) for implementation options
-5. [NIST AI RMF Mapping](../acr-nist-ai-rmf-mapping.md) for compliance context
+1. [ACR Control Plane Architecture](../architecture/acr-control-plane-architecture.md)
+2. [Reference Architecture](../architecture/acr-runtime-architecture.md)
+3. [Telemetry Schema Specification](../specifications/telemetry-schema.md)
+4. [Implementation Guide](./acr-implementation-guide.md) for deployment patterns and options
+5. [NIST AI RMF Mapping](../compliance/acr-nist-ai-rmf-mapping.md) for compliance context
 
 ### I'm a security professional. What's most relevant?
 
 Security-focused resources:
-1. [STRIKE Threat Model](../acr-strike-threat-model.md)
-2. [Behavioral Policy Enforcement](docs/pillars/02-behavioral-policy-enforcement.md)
-3. [Self-Healing & Containment](docs/pillars/05-self-healing-containment.md)
-4. [Identity & Purpose Binding](docs/pillars/01-identity-purpose-binding.md)
+1. [STRIKE Threat Model](../security/acr-strike-threat-model.md)
+2. [Behavioral Policy Enforcement](../pillars/02-behavioral-policy-enforcement.md)
+3. [Self-Healing & Containment](../pillars/05-self-healing-containment.md)
+4. [Identity & Purpose Binding](../pillars/01-identity-purpose-binding.md)
 
 ### I'm a compliance officer. How does ACR help?
 
 Compliance-focused resources:
-1. [NIST AI RMF Mapping](../acr-nist-ai-rmf-mapping.md)
-2. [ISO 42001 Mapping](docs/compliance/acr-iso42001-mapping.md) (planned v1.1)
-3. [SOC 2 Mapping](docs/compliance/acr-soc2-mapping.md) (planned v1.1)
-4. [Execution Observability](docs/pillars/04-execution-observability.md) for audit trails
+1. [NIST AI RMF Mapping](../compliance/acr-nist-ai-rmf-mapping.md)
+2. [ISO 42001 Mapping](../compliance/acr-iso42001-mapping.md) (planned v1.1)
+3. [SOC 2 Mapping](../compliance/acr-soc2-mapping.md) (planned v1.1)
+4. [Execution Observability](../pillars/04-execution-observability.md) for audit trails
 
 ---
 

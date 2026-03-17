@@ -7,7 +7,7 @@
 [![Version](https://img.shields.io/badge/version-1.0-green.svg)](https://github.com/SynergeiaLabs/acr-framework/releases)
 [![Framework](https://img.shields.io/badge/type-reference%20architecture-orange.svg)]()
 
-📖 [Read the Docs](./docs) | 🎯 [Use Cases](./acr-use-cases.md) | 🔒 [Threat Model](./acr-strike-threat-model.md) | 🗺️ [NIST Mapping](./acr-nist-ai-rmf-mapping.md)
+📖 [Read the Docs](./docs) | 🎯 [Use Cases](./docs/guides/acr-use-cases.md) | 🔒 [Threat Model](./docs/security/acr-strike-threat-model.md) | 🗺️ [NIST Mapping](./docs/compliance/acr-nist-ai-rmf-mapping.md) | 📋 [Adopt ACR](./ADOPTION.md)
 
 ---
 
@@ -42,6 +42,19 @@ Once an AI system enters production, most organizations lack architectural mecha
 This gap creates operational risk as autonomous systems interact with enterprise infrastructure, access sensitive data, and influence business processes.
 
 **ACR addresses this gap by defining runtime control patterns adapted from proven infrastructure governance architectures.**
+
+---
+
+## Why ACR?
+
+Like **OWASP** for application security and **MITRE ATT&CK** for threat modeling, ACR provides a **shared vocabulary and reference architecture** for runtime AI governance. It is:
+
+- **Framework-agnostic** — Works with any model provider, stack, or policy engine
+- **Standards-aligned** — Maps to NIST AI RMF, ISO/IEC 42001, SOC 2
+- **Implementation-flexible** — API gateway, SDK, sidecar, or control-plane service patterns
+- **Adoption-ready** — Maturity levels, adoption guide, citation and badge for implementers ([ADOPTION.md](./ADOPTION.md))
+
+Whether you are building in-house controls, evaluating vendors, or preparing for audits, ACR gives you a consistent way to design, implement, and assess runtime governance.
 
 ---
 
@@ -124,7 +137,7 @@ ACR defines a **control plane** that mediates between autonomous AI systems and 
 
 **The control plane enforces governance policy at runtime through six complementary control layers.**
 
-See [ACR Control Plane Architecture](./acr-control-plane-architecture.md) for detailed design.
+See [ACR Control Plane Architecture](./docs/architecture/acr-control-plane-architecture.md) for detailed design.
 
 ---
 
@@ -150,7 +163,7 @@ Governance policies translate into machine-enforceable runtime rules for input v
 
 Establishes behavioral baselines and monitors for statistical deviations indicating the system is operating outside intended parameters.
 
-**[Full Specification →](./docs/pillars/03-autonomy-drift-detection.md)** *(In progress)*
+**[Full Specification →](./docs/pillars/03-autonomy-drift-detection.md)**
 
 ---
 
@@ -158,7 +171,7 @@ Establishes behavioral baselines and monitors for statistical deviations indicat
 
 Captures structured telemetry for all AI operations, enabling audit trails, decision reconstruction, and compliance evidence generation.
 
-**[Full Specification →](./docs/pillars/04-execution-observability.md)** *(In progress)*
+**[Full Specification →](./docs/pillars/04-execution-observability.md)**
 
 ---
 
@@ -166,7 +179,7 @@ Captures structured telemetry for all AI operations, enabling audit trails, deci
 
 Enables automated response to policy violations and drift through capability restriction, workflow interruption, system isolation, and escalation.
 
-**[Full Specification →](./docs/pillars/05-self-healing-containment.md)** *(In progress)*
+**[Full Specification →](./docs/pillars/05-self-healing-containment.md)**
 
 ---
 
@@ -174,7 +187,7 @@ Enables automated response to policy violations and drift through capability res
 
 Preserves human oversight through intervention mechanisms, approval workflows, override capabilities, and defined escalation paths.
 
-**[Full Specification →](./docs/pillars/06-human-authority.md)** *(In progress)*
+**[Full Specification →](./docs/pillars/06-human-authority.md)**
 
 ---
 
@@ -210,7 +223,7 @@ ACR is an **architectural framework**, not a prescriptive implementation. Organi
 
 Organizations select patterns based on infrastructure, latency requirements, and operational constraints.
 
-See [Implementation Guide](./acr-implementation-guide.md) for detailed deployment architectures.
+See [Implementation Guide](./docs/guides/acr-implementation-guide.md) for detailed deployment architectures.
 
 ---
 
@@ -236,7 +249,7 @@ ACR complements established AI governance and security frameworks:
 - **CC8.1 (Change Management):** Change controls → *Drift detection, baselines*
 - **PI1.4 (Privacy):** Data privacy → *Output filtering, PII redaction*
 
-See [NIST AI RMF Mapping](./acr-nist-ai-rmf-mapping.md) for detailed control mappings.
+See [NIST AI RMF Mapping](./docs/compliance/acr-nist-ai-rmf-mapping.md) for detailed control mappings.
 
 ---
 
@@ -250,7 +263,7 @@ ACR applies to autonomous AI systems across enterprise contexts:
 - **Document Processing Agents:** Enforce PII handling, control external API calls, monitor extraction accuracy
 - **Multi-Agent Workflows:** Coordinate inter-agent authorization, maintain workflow audit trails, contain cascading failures
 
-See [ACR Use Cases](./acr-use-cases.md) for detailed scenarios and control applications.
+See [ACR Use Cases](./docs/guides/acr-use-cases.md) for detailed scenarios and control applications.
 
 ---
 
@@ -258,15 +271,18 @@ See [ACR Use Cases](./acr-use-cases.md) for detailed scenarios and control appli
 
 ### Core Framework
 - **[Framework README](./README.md)** - This document
-- **[Control Plane Architecture](./acr-control-plane-architecture.md)** - Technical architecture
-- **[Runtime Architecture](./acr-runtime-architecture.md)** - Deployment patterns
-- **[Production Lifecycle](./acr-production-lifecycle.md)** - End-to-end workflow
+- **[Control Plane Architecture](./docs/architecture/acr-control-plane-architecture.md)** - Technical architecture
+- **[Runtime Architecture](./docs/architecture/acr-runtime-architecture.md)** - Deployment patterns
+- **[Production Lifecycle](./docs/architecture/acr-production-lifecycle.md)** - End-to-end workflow
 
 ### Pillar Specifications
-- **[Pillars Overview](./acr-pillars.md)** - All six control layers
+- **[Pillars Overview](./docs/pillars/README.md)** - All six control layers
 - **[Layer 1: Identity & Purpose Binding](./docs/pillars/01-identity-purpose-binding.md)**
 - **[Layer 2: Behavioral Policy Enforcement](./docs/pillars/02-behavioral-policy-enforcement.md)**
-- *Layers 3-6 specifications in progress* (see [Roadmap](./ROADMAP.md))
+- **[Layer 3: Autonomy Drift Detection](./docs/pillars/03-autonomy-drift-detection.md)**
+- **[Layer 4: Execution Observability](./docs/pillars/04-execution-observability.md)**
+- **[Layer 5: Self-Healing & Containment](./docs/pillars/05-self-healing-containment.md)**
+- **[Layer 6: Human Authority](./docs/pillars/06-human-authority.md)**
 
 ### Technical Specifications
 - **[Telemetry Schema](./docs/specifications/telemetry-schema.md)** - JSON schema for observability
@@ -274,14 +290,14 @@ See [ACR Use Cases](./acr-use-cases.md) for detailed scenarios and control appli
 - *Drift Detection Requirements* (planned v1.1)
 
 ### Security & Compliance
-- **[STRIDE Threat Model](./acr-strike-threat-model.md)** - AI-specific threats
-- **[NIST AI RMF Mapping](./acr-nist-ai-rmf-mapping.md)** - Compliance alignment
-- **[Glossary](./acr-glossary.md)** - Term definitions
+- **[STRIKE Threat Model](./docs/security/acr-strike-threat-model.md)** - AI-specific threats
+- **[NIST AI RMF Mapping](./docs/compliance/acr-nist-ai-rmf-mapping.md)** - Compliance alignment
+- **[Glossary](./docs/security/acr-glossary.md)** - Term definitions
 
 ### Getting Started
-- **[FAQ](./docs/FAQ.md)** - Frequently asked questions
-- **[Implementation Guide](./acr-implementation-guide.md)** - Deployment guidance
-- **[Use Cases](./acr-use-cases.md)** - Real-world scenarios
+- **[FAQ](./docs/guides/FAQ.md)** - Frequently asked questions
+- **[Implementation Guide](./docs/guides/acr-implementation-guide.md)** - Deployment guidance
+- **[Use Cases](./docs/guides/acr-use-cases.md)** - Real-world scenarios
 
 ---
 
@@ -321,7 +337,7 @@ See [CONTRIBUTING.md](./CONTRIBUTING.md) for detailed guidelines.
 - **v1.2 (Q3 2026):** Multi-model orchestration patterns, federated governance
 - **v2.0 (2027):** Extensions for emerging AI architectures, regulatory compliance modules
 
-See [ROADMAP.md](./ROADMAP.md) for detailed development plan.
+See [ROADMAP.md](./ROADMAP.md) for detailed development plan. For project structure, decision-making, and working groups, see [GOVERNANCE.md](./GOVERNANCE.md).
 
 **Community:**
 - GitHub Discussions: Architecture questions, use case sharing
@@ -332,7 +348,7 @@ See [ROADMAP.md](./ROADMAP.md) for detailed development plan.
 
 ## Implementations
 
-Organizations and vendors implementing ACR-aligned solutions:
+Organizations and vendors implementing ACR-aligned solutions are listed below. To **add your implementation**, see [ADOPTION.md](./ADOPTION.md) (criteria, maturity levels, and how to submit a listing).
 
 **Open Source:**
 - *[Add community implementations as they emerge]*
@@ -343,7 +359,7 @@ Organizations and vendors implementing ACR-aligned solutions:
 **Research:**
 - *[Academic implementations and extensions]*
 
-**Note:** ACR is a framework specification. Listed implementations may vary in completeness and interpretation of ACR principles.
+**Note:** ACR is a framework specification. Listing does not imply endorsement; implementations self-declare alignment. Maturity levels (1–3) are defined in [ADOPTION.md](./ADOPTION.md).
 
 ---
 
@@ -355,9 +371,9 @@ This framework is freely available for use, modification, and distribution. Comm
 
 ---
 
-## Citation
+## Citation and Branding
 
-If you reference ACR Framework in research or publications:
+If you reference ACR in research, standards, or product documentation, please cite:
 
 ```bibtex
 @misc{acr-framework-2026,
@@ -371,15 +387,20 @@ If you reference ACR Framework in research or publications:
 }
 ```
 
+Implementers may use the **ACR Aligned** badge and refer to [ADOPTION.md](./ADOPTION.md) for citation text, logo usage, and maturity levels.
+
 ---
 
 ## Resources
 
 - **Website:** [autonomouscontrol.io](https://autonomouscontrol.io)
-- **Documentation:** [/docs](./docs)
+- **Documentation:** [docs](./docs)
+- **Adoption & maturity:** [ADOPTION.md](./ADOPTION.md)
+- **Governance:** [GOVERNANCE.md](./GOVERNANCE.md)
+- **Contributing:** [CONTRIBUTING.md](./CONTRIBUTING.md)
 - **Discussions:** [GitHub Discussions](https://github.com/SynergeiaLabs/acr-framework/discussions)
 - **Issues:** [GitHub Issues](https://github.com/SynergeiaLabs/acr-framework/issues)
 
 ---
 
-**ACR Framework v1.0** | March 2026 | Runtime Governance for Autonomous AI
+**ACR Framework v1.0** | March 2026 | Runtime Governance for Autonomous AI | [Cite](README.md#citation-and-branding) | [Adopt](ADOPTION.md)

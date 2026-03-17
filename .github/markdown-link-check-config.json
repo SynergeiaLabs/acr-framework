@@ -1,0 +1,15 @@
+{
+  "ignorePatterns": [
+    { "pattern": "^https://autonomouscontrol.io" },
+    { "pattern": "^https://github.com" },
+    { "pattern": "^https://opentelemetry.io" },
+    { "pattern": "^https://www.openpolicyagent.org" },
+    { "pattern": "^https://spiffe.io" },
+    { "pattern": "^http" }
+  ],
+  "replacementPatterns": [],
+  "httpHeaders": [],
+  "timeout": "20s",
+  "retryOn429": true,
+  "retryCount": 3
+}

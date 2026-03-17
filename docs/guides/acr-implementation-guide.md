@@ -1141,4 +1141,4 @@ k6 run --vus 50 --duration 5m acr-load-test.js
 
 ---
 
-*This implementation guide is a living document. Contributions, deployment experience reports, and integration patterns are welcome via [GitHub Discussions](https://github.com/acrframework/community/discussions).*
+*This implementation guide is a living document. Contributions, deployment experience reports, and integration patterns are welcome via [GitHub Discussions](https://github.com/SynergeiaLabs/acr-framework/discussions).*

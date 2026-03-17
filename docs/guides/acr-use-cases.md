@@ -36,6 +36,26 @@ ACR provides governance mechanisms including:
 - Execution Observability to monitor interactions
 - Human Authority for escalation when necessary
 
+### Concrete scenario: Customer support agent
+
+**Setup:** A customer support agent (purpose: `customer_support`) can query the CRM, send emails, and create tickets. Refunds over $100 and bulk data export require human approval.
+
+**Sample policy (conceptual):**
+
+```yaml
+# Purpose-bound tools for customer_support
+allowed_tools: [query_customer_db, send_email, create_ticket, lookup_order]
+blocked_tools: [bulk_export, issue_refund]  # gated by Human Authority
+
+# High-risk action → approval required
+human_approval_required:
+  - action: issue_refund
+    condition: amount_cents > 10000
+  - action: bulk_export
+```
+
+**Decision flow:** User asks agent to "refund $150 to customer X." Control plane: (1) Identity allows `customer_support`; (2) Policy allows `issue_refund` only after approval; (3) Request routed to approval queue; (4) After human approval, action allowed and logged in telemetry with approver ID. If drift detection later sees a spike in refund requests from this agent, containment can throttle or require re-approval.
+
 ---
 
 # Autonomous Workflow Automation
@@ -65,6 +85,12 @@ ACR enables:
 - Policy validation for system actions
 - containment mechanisms for abnormal behavior
 - runtime monitoring of workflow execution
+
+### Concrete scenario: Incident response orchestration
+
+**Setup:** An incident-response agent can create tickets, run read-only queries, and invoke a "remediate" action. Remediation (e.g. isolate host, block IP) is high-risk and must be approved or auto-approved only when confidence is above a threshold.
+
+**Decision flow:** Agent proposes "isolate host 10.0.1.5." (1) Identity: agent has purpose `incident_response`; (2) Policy: `remediate` is in allowlist but requires approval or high-confidence signal; (3) If confidence below 0.9 → send to human queue; if 0.9 or above and within policy → allow and log; (4) Observability records full chain (alert → agent decision → policy outcome → action). Drift detection can flag if remediation rate or scope increases beyond baseline.
 
 ---
 
@@ -123,6 +149,12 @@ ACR enables:
 - observability into reasoning and outputs
 - policy enforcement for data usage
 - oversight mechanisms for high-risk decisions
+
+### Concrete scenario: Financial analysis agent
+
+**Setup:** Agent purpose: `financial_analysis`. Allowed data: internal financial datasets A and B; external market data (read-only). Outputs that recommend trades or allocations above a threshold require human sign-off.
+
+**Decision flow:** Agent produces "Recommend increasing position in asset X by 15%." (1) Policy checks: recommendation type and size trigger human-approval rule; (2) Output is held; approval queue notified; (3) After approval, recommendation is released and full chain (sources, model run, approver) is in telemetry for audit. Policy can also enforce PII redaction in any exported analysis (Behavioral Policy Enforcement).
 
 ---
 

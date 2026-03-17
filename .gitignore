@@ -1,0 +1,25 @@
+# OS and editor
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.idea/
+.vscode/
+*.sublime-*
+
+# Local / env
+.env
+.env.local
+*.local
+
+# Build / generated (if any doc tooling is added later)
+_site/
+.cache/
+*.pyc
+__pycache__/
+
+# Optional: uncomment if using a doc generator
+# node_modules/
+# .venv/
+# venv/

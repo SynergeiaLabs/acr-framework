@@ -117,3 +117,51 @@ Runtime governance enables organizations to enforce policies, monitor behavior, 
 A governance framework designed to manage the behavior of autonomous AI systems operating in enterprise environments.
 
 ACR introduces runtime control architecture that enforces governance policies while AI systems are actively executing.
+
+---
+
+# Control Layer / Pillar
+
+Within ACR, the six control layers (Identity & Purpose Binding, Behavioral Policy Enforcement, Autonomy Drift Detection, Execution Observability, Self-Healing & Containment, Human Authority) are also called **pillars**. Each pillar has a full specification document with control objectives, patterns, and evaluation criteria.
+
+---
+
+# Policy Engine
+
+A component that evaluates requests, actions, or outputs against a set of rules (policies). In ACR, the Behavioral Policy Enforcement layer typically uses a policy engine (e.g. OPA, Cedar) to enforce allowlists, denylists, input/output filters, and action authorization.
+
+---
+
+# Telemetry Schema
+
+The canonical structure for events emitted by an ACR control plane. Defined in the [Telemetry Schema Specification](../specifications/telemetry-schema.md). Events include agent identity, request/execution context, policy decisions, and metadata (e.g. drift score). Used for audit, drift detection, and compliance evidence.
+
+---
+
+# Kill Switch
+
+A mechanism to immediately halt or isolate an AI system (e.g. revoke credentials, block egress, stop processing). ACR recommends deploying the kill switch independently of the agent runtime so it remains available even if the agent is compromised. See [Self-Healing & Containment](../pillars/05-self-healing-containment.md).
+
+---
+
+# Break-Glass
+
+An override that allows a human operator to permit an action that would otherwise be denied by policy, typically for emergencies or exceptional cases. Break-glass use should be logged and reviewed. Part of the Human Authority pillar.
+
+---
+
+# Purpose Binding
+
+The association of an AI system with a specific operational purpose (e.g. `customer_support`, `data_analysis`). Purpose restricts which tools, data, and actions the system is allowed to use. Enforced by the Identity & Purpose Binding layer.
+
+---
+
+# STRIKE (mnemonic)
+
+The six threat categories in the ACR/STRIKE threat model: **S**cope Escalation, **T**ool Misuse, **R**ole Drift, **I**nformation Leakage, **K**ill Chain Expansion, **E**xecution Manipulation. Used for risk assessment and mapping controls to threats. See [STRIKE Threat Model](./acr-strike-threat-model.md).
+
+---
+
+# ACR Maturity Level
+
+A staged adoption level (1, 2, or 3) indicating how many ACR pillars are implemented. Level 1: Observability & Policy. Level 2: + Drift Detection & Containment. Level 3: All six pillars. See [ADOPTION.md](../../ADOPTION.md).
