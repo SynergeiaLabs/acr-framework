@@ -8,6 +8,8 @@ If agents are going to reach customer data, ticketing systems, production infras
 
 This repo is that reference implementation.
 
+Messaging, evidence requirements, and pillar specifications are aligned with https://autonomouscontrol.io/control-plane.
+
 ## Why This Exists
 
 Most agent stacks are optimized for capability:
