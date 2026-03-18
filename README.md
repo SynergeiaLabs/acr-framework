@@ -12,6 +12,21 @@ Learn more at https://autonomouscontrol.io/control-plane.
 
 📖 [Read the Docs](./docs) | 🎯 [Use Cases](./docs/guides/acr-use-cases.md) | 🔒 [Threat Model](./docs/security/acr-strike-threat-model.md) | 🗺️ [NIST Mapping](./docs/compliance/acr-nist-ai-rmf-mapping.md) | 📋 [Adopt ACR](./ADOPTION.md)
 
+## Try the ACR Control Plane
+Run a runnable reference control plane that demonstrates ACR six-pillar runtime enforcement.
+
+```bash
+git clone https://github.com/SynergeiaLabs/acr-framework.git
+cd acr-framework/implementations/acr-control-plane
+cp .env.example .env
+docker-compose up --build
+
+# Verify health
+curl http://localhost:8000/acr/health
+```
+
+Open the operator console at `http://localhost:8000/console` (Operator API key: `dev-operator-key`; Kill switch secret: `killswitch_dev_secret_change_me`).
+
 ---
 
 ## Overview
