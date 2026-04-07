@@ -125,6 +125,10 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     except asyncio.CancelledError:
         pass
 
+    # Shutdown: close OPA HTTP client pool
+    from acr.pillar2_policy.engine import close_opa_client
+    await close_opa_client()
+
     # Shutdown: close Redis and DB pool
     await close_redis()
     await engine.dispose()

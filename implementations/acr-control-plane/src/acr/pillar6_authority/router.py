@@ -61,7 +61,7 @@ async def approve(
     db: AsyncSession = Depends(get_db),
     principal: OperatorPrincipal = Depends(require_operator_roles("approver", "security_admin")),
 ) -> ApprovalResponse:
-    record = await ap.approve(db, request_id, body.decided_by or principal.subject, body.reason)
+    record = await ap.approve(db, request_id, principal.subject, body.reason)
     if settings.execute_allowed_actions:
         await ap.execute_approval(record)
     return _to_response(record)
@@ -74,7 +74,7 @@ async def deny(
     db: AsyncSession = Depends(get_db),
     principal: OperatorPrincipal = Depends(require_operator_roles("approver", "security_admin")),
 ) -> ApprovalResponse:
-    record = await ap.deny(db, request_id, body.decided_by or principal.subject, body.reason)
+    record = await ap.deny(db, request_id, principal.subject, body.reason)
     return _to_response(record)
 
 
@@ -89,7 +89,7 @@ async def override(
     if not body.reason:
         from fastapi import HTTPException
         raise HTTPException(status_code=422, detail="Break-glass override requires a reason")
-    record = await ap.override(db, request_id, body.decided_by or principal.subject, body.reason)
+    record = await ap.override(db, request_id, principal.subject, body.reason)
     if settings.execute_allowed_actions:
         await ap.execute_approval(record)
     return _to_response(record)

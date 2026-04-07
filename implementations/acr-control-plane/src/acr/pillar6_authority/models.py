@@ -27,7 +27,6 @@ class ApprovalRequest(BaseModel):
 
 
 class ApprovalDecision(BaseModel):
-    decided_by: str | None = None
     reason: str | None = None
 
 

@@ -49,6 +49,7 @@ async def validate_oidc_token(token: str, *, nonce: str | None = None) -> OIDCPr
     if not oidc_is_enabled():
         raise UnauthorizedOperatorError("OIDC is not enabled")
 
+    # Only decode the header to extract `kid` for key lookup — never trust `alg`.
     header = jwt.get_unverified_header(token)
     kid = header.get("kid")
     jwks = await _fetch_jwks()
@@ -63,7 +64,7 @@ async def validate_oidc_token(token: str, *, nonce: str | None = None) -> OIDCPr
     claims = jwt.decode(
         token,
         key,
-        algorithms=[header.get("alg", "RS256")],
+        algorithms=["RS256", "ES256"],
         audience=settings.oidc_client_id,
         issuer=settings.oidc_issuer,
     )
