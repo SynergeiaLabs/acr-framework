@@ -163,6 +163,20 @@ label {
   display: block;
 }
 
+/* Ensure small labels are legible on all card backgrounds */
+.sunrise .metric-card small,
+.sunrise small,
+.metric-card.sunrise small { color: #7a3a10; }
+.ember .metric-card small,
+.ember small,
+.metric-card.ember small { color: #6b2208; }
+.mint .metric-card small,
+.mint small,
+.metric-card.mint small { color: #1a5c55; }
+.ink .metric-card small,
+.ink small,
+.metric-card.ink small { color: #c8e8f8; }
+
 .metric-card strong {
   display: block;
   font-size: 2rem;
@@ -172,6 +186,10 @@ label {
 .sunrise { background: var(--sunrise); }
 .mint { background: var(--mint); }
 .ink { background: var(--inkwash); color: #f7fbff; }
+.ink span { color: #c8e8f8; }
+.ember span { color: #5a1e0a; }
+.sunrise span { color: #6b3210; }
+.mint span { color: #134f49; }
 .ember { background: var(--ember); }
 
 .page {
