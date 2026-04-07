@@ -55,7 +55,7 @@ def _redis_client() -> aioredis.Redis:
 
 
 def _require_secret(x_killswitch_secret: str | None) -> None:
-    if x_killswitch_secret != KILLSWITCH_SECRET:
+    if not x_killswitch_secret or not secrets.compare_digest(x_killswitch_secret, KILLSWITCH_SECRET):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid kill switch secret")
 
 

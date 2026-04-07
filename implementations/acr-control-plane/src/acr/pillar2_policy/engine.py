@@ -24,6 +24,23 @@ _RETRY_BASE_DELAY = 0.05  # seconds; doubles each attempt → 50ms, 100ms, 200ms
 # HTTP status codes that are worth retrying (transient server-side failures)
 _RETRYABLE_STATUS = {429, 500, 502, 503, 504}
 
+# Module-level connection-pooled client (avoids creating a new TCP connection per call)
+_opa_client: httpx.AsyncClient | None = None
+
+
+def get_opa_client() -> httpx.AsyncClient:
+    global _opa_client
+    if _opa_client is None:
+        _opa_client = httpx.AsyncClient(base_url=settings.opa_url, timeout=_TIMEOUT)
+    return _opa_client
+
+
+async def close_opa_client() -> None:
+    global _opa_client
+    if _opa_client is not None:
+        await _opa_client.aclose()
+        _opa_client = None
+
 
 async def evaluate_policy(
     agent_manifest: dict,
@@ -61,8 +78,8 @@ async def evaluate_policy(
 
     for attempt in range(_MAX_RETRIES):
         try:
-            async with httpx.AsyncClient(base_url=settings.opa_url, timeout=_TIMEOUT) as client:
-                resp = await client.post("/v1/data/acr", json=opa_input)
+            client = get_opa_client()
+            resp = await client.post("/v1/data/acr", json=opa_input)
 
             # Don't retry client errors (4xx) — they signal bad input, not OPA failure
             if 400 <= resp.status_code < 500 and resp.status_code not in _RETRYABLE_STATUS:

@@ -84,6 +84,11 @@ class ApprovalNotFoundError(ACRError):
     error_code = "APPROVAL_NOT_FOUND"
 
 
+class ApprovalConflictError(ACRError):
+    status_code = 409
+    error_code = "APPROVAL_CONFLICT"
+
+
 class ApprovalTimeoutError(ACRError):
     status_code = 403
     error_code = "APPROVAL_TIMEOUT"
