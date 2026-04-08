@@ -62,7 +62,7 @@ We maintain a list of implementations (open source, commercial, and research) in
 You may use this badge in READMEs or docs to indicate ACR alignment:
 
 ```markdown
-[![ACR Aligned](https://img.shields.io/badge/ACR-Aligned-blue)](https://github.com/SynergeiaLabs/acr-framework)
+[![ACR Aligned](https://img.shields.io/badge/ACR-Aligned-blue)](https://github.com/AdamDiStefanoAI/acr-framework)
 ```
 
 Optional: specify level (e.g. "ACR Level 2 Aligned") in your own text; the badge links to the framework repo.
