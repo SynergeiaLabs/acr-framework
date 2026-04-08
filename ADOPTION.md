@@ -1,4 +1,4 @@
-# ACR Framework — Adoption and Implementation
+# ACR Standard — Adoption and Implementation
 
 This document explains how to adopt the ACR Framework, how to claim alignment, how to be listed as an implementation, and how to cite and use ACR branding. The goal is to make ACR a recognizable, credible standard for runtime AI governance—similar in adoption and trust to OWASP, MITRE ATT&CK, and NIST frameworks.
 
@@ -98,7 +98,7 @@ For papers, reports, and standards:
 ```
 
 **Plain text:**  
-ACR Framework: Autonomous Control & Resilience for Runtime AI Governance. DiStefano, A. (2026). https://github.com/SynergeiaLabs/acr-framework. Version 1.0.
+ACR Standard: Agentic Control at Runtime. DiStefano, A. (2026). https://github.com/AdamDiStefanoAI/acr-framework. Version 1.0.
 
 **STRIKE threat model:** When referencing the threat model specifically, cite "STRIKE Threat Model (ACR Framework)" and link to [docs/security/acr-strike-threat-model.md](docs/security/acr-strike-threat-model.md).
 
@@ -114,7 +114,7 @@ ACR Framework: Autonomous Control & Resilience for Runtime AI Governance. DiStef
 
 ## References
 
-- [ACR Framework README](README.md)
+- [ACR Standard README](README.md)
 - [Implementation Guide](docs/guides/acr-implementation-guide.md)
 - [STRIKE Threat Model](docs/security/acr-strike-threat-model.md)
 - [NIST AI RMF Mapping](docs/compliance/acr-nist-ai-rmf-mapping.md)
