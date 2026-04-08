@@ -1,9 +1,9 @@
 <div align="center">
 
-<img src="https://autonomouscontrol.io/assets/ACR_1.png" alt="ACR Framework" width="780" />
+<img src="https://runtimecontrol.io/assets/ACR_1.png" alt="ACR Framework" width="780" />
 
 # **ACR Standard**
-### Agentic Control at Runtime
+### ACR: Agentic Control at Runtime
 
 **The control plane your autonomous AI agents need before you let them touch production.**
 
@@ -327,6 +327,6 @@ We welcome PRs, issues, and threat-model discussions. See [`CONTRIBUTING.md`](./
 [![Adopt ACR](https://img.shields.io/badge/Adopt-ACR-00d4ff.svg?style=for-the-badge)](./ADOPTION.md)
 [![Star on GitHub](https://img.shields.io/github/stars/AdamDiStefanoAI/acr-framework?style=for-the-badge&logo=github)](https://github.com/AdamDiStefanoAI/acr-framework)
 
-**[autonomouscontrol.io/control-plane](https://autonomouscontrol.io/control-plane)**
+**[runtimecontrol.io/control-plane](https://runtimecontrol.io/control-plane)**
 
 </div>
