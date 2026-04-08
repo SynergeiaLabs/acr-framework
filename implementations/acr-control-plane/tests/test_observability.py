@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import pytest
 
+from acr.config import settings
 from acr.pillar4_observability.schema import ACRTelemetryEvent
 from acr.pillar4_observability.telemetry import build_event
 from acr.pillar4_observability.schema import LatencyBreakdown
@@ -32,7 +33,7 @@ class TestTelemetrySchema:
             approval_request_id=None,
             drift_score=None,
         )
-        assert event.acr_version == "1.0"
+        assert event.acr_version == settings.acr_version
         assert event.event_type == "ai_inference"
         assert event.agent.agent_id == "test-agent"
         assert event.output.decision == "allow"

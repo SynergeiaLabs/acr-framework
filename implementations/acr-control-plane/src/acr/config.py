@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     # ── Runtime ───────────────────────────────────────────────────────────────
     acr_env: str = "development"
     log_level: str = "INFO"
-    acr_version: str = "1.0"
+    acr_version: str = "1.0.1"
     schema_bootstrap_mode: str = "auto"
     strict_dependency_startup: bool = False
 
