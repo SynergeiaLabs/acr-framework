@@ -47,6 +47,7 @@ class Settings(BaseSettings):
     # HMAC-SHA256 key for signing outbound webhook payloads.
     # Receivers verify the X-ACR-Signature header to confirm authenticity.
     webhook_hmac_secret: str = ""
+    audit_signing_secret: str = "dev_audit_signing_secret_change_me"
 
     # ── OpenTelemetry ─────────────────────────────────────────────────────────
     otel_exporter_otlp_endpoint: str = ""
@@ -109,6 +110,7 @@ _WEAK_KEYS = {
     "changeme",
     "password",
     "jwt_secret",
+    "dev_audit_signing_secret_change_me",
 }
 
 _MIN_KEY_BYTES = 32  # 256 bits — minimum for HS256
@@ -148,6 +150,12 @@ def assert_production_secrets() -> None:
             f"'{settings.acr_env}'. Set a strong random secret before deploying."
         )
 
+    if settings.audit_signing_secret in _WEAK_KEYS or len(settings.audit_signing_secret.encode()) < _MIN_KEY_BYTES:
+        raise RuntimeError(
+            "AUDIT_SIGNING_SECRET must be set to a strong value before deploying "
+            "outside development/test."
+        )
+
     if settings.execute_allowed_actions and len(settings.executor_hmac_secret.encode()) < _MIN_KEY_BYTES:
         raise RuntimeError(
             "EXECUTOR_HMAC_SECRET must be set to a strong value before enabling "
@@ -163,6 +171,12 @@ def assert_production_secrets() -> None:
     if not settings.operator_api_keys_json:
         raise RuntimeError(
             "OPERATOR_API_KEYS_JSON must be set in non-development environments."
+        )
+
+    if not settings.service_operator_api_key:
+        raise RuntimeError(
+            "SERVICE_OPERATOR_API_KEY must be set in non-development environments "
+            "so the gateway can authenticate to the independent kill-switch service."
         )
 
     if settings.oidc_enabled:
@@ -197,6 +211,11 @@ def effective_schema_bootstrap_mode() -> str:
     if mode != "auto":
         return mode
     return "create" if settings.acr_env in ("development", "test") else "validate"
+
+
+def runtime_dependencies_fail_closed() -> bool:
+    """Enterprise posture: fail closed outside development/test."""
+    return settings.strict_dependency_startup or settings.acr_env not in ("development", "test")
 
 
 @lru_cache(maxsize=1)

@@ -16,6 +16,7 @@ def build_secret_bundle() -> dict[str, str]:
     return {
         "JWT_SECRET_KEY": _token_hex(),
         "KILLSWITCH_SECRET": _token_hex(),
+        "AUDIT_SIGNING_SECRET": _token_hex(),
         "OPERATOR_SESSION_SECRET": _token_hex(),
         "WEBHOOK_HMAC_SECRET": _token_hex(),
         "EXECUTOR_HMAC_SECRET": _token_hex(),

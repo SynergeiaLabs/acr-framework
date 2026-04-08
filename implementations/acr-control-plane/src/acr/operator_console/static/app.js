@@ -1,6 +1,6 @@
 const state = {
-  operatorApiKey: localStorage.getItem("acr.operatorApiKey") || "",
-  killswitchSecret: localStorage.getItem("acr.killswitchSecret") || "",
+  operatorApiKey: "",
+  killswitchSecret: "",
   currentPolicyDraftId: null,
   sessionPrincipal: null,
 };
@@ -124,6 +124,8 @@ function generatePolicyStarter(formData) {
   const approvalQueue = (formData.approval_queue || template.approvalQueue || "default").trim();
   const spendLimit = Number(formData.max_cost_per_hour_usd || 5);
   const actionLimit = Number(formData.max_actions_per_minute || 30);
+  const defaultActionCost = formData.default_action_cost_usd ? Number(formData.default_action_cost_usd) : null;
+  const toolCosts = parseJsonField(formData.tool_costs_usd_json, {});
   const escalationThreshold = formData.escalate_over_amount ? Number(formData.escalate_over_amount) : null;
 
   const manifest = {
@@ -136,6 +138,8 @@ function generatePolicyStarter(formData) {
     boundaries: {
       max_actions_per_minute: actionLimit,
       max_cost_per_hour_usd: spendLimit,
+      default_action_cost_usd: defaultActionCost,
+      tool_costs_usd: toolCosts,
       credential_rotation_days: 90,
       allowed_regions: [],
     },
@@ -447,16 +451,14 @@ function installSessionControls() {
   document.getElementById("save-session").addEventListener("click", () => {
     state.operatorApiKey = document.getElementById("operator-api-key").value.trim();
     state.killswitchSecret = document.getElementById("killswitch-secret").value.trim();
-    localStorage.setItem("acr.operatorApiKey", state.operatorApiKey);
-    localStorage.setItem("acr.killswitchSecret", state.killswitchSecret);
     updateSessionUI();
-    setMessage("Operator session saved.");
+    setMessage("Operator session loaded for this tab only.");
   });
   document.getElementById("clear-session").addEventListener("click", () => {
     state.operatorApiKey = "";
     state.killswitchSecret = "";
-    localStorage.removeItem("acr.operatorApiKey");
-    localStorage.removeItem("acr.killswitchSecret");
+    document.getElementById("operator-api-key").value = "";
+    document.getElementById("killswitch-secret").value = "";
     updateSessionUI();
     setMessage("Operator session cleared.");
   });
@@ -476,6 +478,8 @@ function installForms() {
         boundaries: {
           max_actions_per_minute: Number(data.max_actions_per_minute || 30),
           max_cost_per_hour_usd: Number(data.max_cost_per_hour_usd || 5),
+          default_action_cost_usd: data.default_action_cost_usd ? Number(data.default_action_cost_usd) : null,
+          tool_costs_usd: parseJsonField(data.tool_costs_usd_json, {}),
           credential_rotation_days: 90,
           allowed_regions: [],
         },

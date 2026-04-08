@@ -8,7 +8,7 @@ from pydantic import BaseModel, Field
 
 class PolicyDecision(BaseModel):
     policy_id: str
-    decision: Literal["allow", "deny", "escalate"] = "allow"
+    decision: Literal["allow", "deny", "modify", "escalate"] = "allow"
     reason: str | None = None
     latency_ms: int | None = None
 
@@ -28,9 +28,11 @@ class OPAResponse(BaseModel):
 class PolicyEvaluationResult(BaseModel):
     """Aggregated result from OPA evaluation."""
 
-    final_decision: Literal["allow", "deny", "escalate"]
+    final_decision: Literal["allow", "deny", "modify", "escalate"]
     decisions: list[PolicyDecision]
     reason: str | None = None
     approval_queue: str | None = None
     sla_minutes: int | None = None
+    modified_action: dict | None = None
+    modified_parameters: dict | None = None
     latency_ms: int = 0

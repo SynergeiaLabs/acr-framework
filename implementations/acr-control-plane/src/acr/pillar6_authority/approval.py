@@ -17,6 +17,8 @@ from acr.common.time import utcnow
 from acr.config import settings
 from acr.db.models import ApprovalRequestRecord
 from acr.gateway.executor import execute_action
+from acr.gateway.spend_control import adjust_authoritative_spend, resolve_action_cost_usd
+from acr.pillar1_identity.registry import get_manifest
 
 logger = structlog.get_logger(__name__)
 
@@ -192,22 +194,32 @@ async def override(db: AsyncSession, request_id: str, decided_by: str, reason: s
     return record
 
 
-async def execute_approval(record: ApprovalRequestRecord) -> dict:
+async def execute_approval(db: AsyncSession, record: ApprovalRequestRecord) -> dict:
     """Execute an approved/overridden action when downstream execution is enabled."""
-    result = await execute_action(
-        agent_id=record.agent_id,
-        tool_name=record.tool_name,
-        parameters=record.parameters or {},
-        description=record.description,
-        correlation_id=record.correlation_id,
-        approval_request_id=record.request_id,
-    )
+    manifest = await get_manifest(db, record.agent_id)
+    estimated_cost_usd = resolve_action_cost_usd(manifest, record.tool_name)
+
+    await adjust_authoritative_spend(record.agent_id, estimated_cost_usd)
+    try:
+        result = await execute_action(
+            agent_id=record.agent_id,
+            tool_name=record.tool_name,
+            parameters=record.parameters or {},
+            description=record.description,
+            correlation_id=record.correlation_id,
+            approval_request_id=record.request_id,
+        )
+    except Exception:
+        await adjust_authoritative_spend(record.agent_id, -estimated_cost_usd)
+        raise
+
     record.execution_result = result
     logger.info(
         "approval_executed",
         request_id=record.request_id,
         agent_id=record.agent_id,
         tool_name=record.tool_name,
+        estimated_cost_usd=estimated_cost_usd,
     )
     return result
 

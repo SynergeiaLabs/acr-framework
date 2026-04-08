@@ -2,10 +2,17 @@
 from __future__ import annotations
 
 import structlog
+from sqlalchemy import desc, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from acr.config import settings
 from acr.db.models import TelemetryEventRecord
+from acr.pillar4_observability.integrity import (
+    extract_payload_hash,
+    payload_sha256,
+    remove_integrity_metadata,
+    sign_payload_hash,
+)
 from acr.pillar4_observability.schema import (
     ACRTelemetryEvent,
     AcrControlPlaneMetadata,
@@ -44,6 +51,9 @@ def build_event(
     output_reason: str | None,
     approval_request_id: str | None,
     drift_score: float | None,
+    output_filtered: bool = False,
+    filter_reason: str | None = None,
+    modified_parameters: dict | None = None,
     custom: dict | None = None,
 ) -> ACRTelemetryEvent:
     return ACRTelemetryEvent(
@@ -73,6 +83,9 @@ def build_event(
             decision=output_decision,  # type: ignore[arg-type]
             reason=output_reason,
             approval_request_id=approval_request_id,
+            filtered=output_filtered,
+            filter_reason=filter_reason,
+            modified_parameters=modified_parameters,
         ),
         metadata=TelemetryMetadata(
             environment=settings.acr_env,
@@ -85,12 +98,22 @@ def build_event(
 
 async def persist_event(db: AsyncSession, event: ACRTelemetryEvent) -> None:
     """Write the telemetry event to PostgreSQL (async, non-blocking in background task)."""
+    payload = event.model_dump(mode="json")
+    previous_hash = await _latest_correlation_event_hash(db, event.request.request_id)
+    payload_hash = payload_sha256(remove_integrity_metadata(payload))
+    payload.setdefault("metadata", {})["integrity"] = {
+        "payload_sha256": payload_hash,
+        "previous_event_sha256": previous_hash,
+        "record_signature": sign_payload_hash(payload_hash, previous_hash),
+        "signature_algorithm": "hmac-sha256",
+    }
+
     record = TelemetryEventRecord(
         event_id=event.event_id,
         correlation_id=event.request.request_id,
         event_type=event.event_type,
         agent_id=event.agent.agent_id,
-        payload=event.model_dump(),
+        payload=payload,
     )
     db.add(record)
     await db.flush()
@@ -110,3 +133,16 @@ def log_event(event: ACRTelemetryEvent) -> None:
         duration_ms=event.execution.duration_ms,
         drift_score=event.metadata.drift_score,
     )
+
+
+async def _latest_correlation_event_hash(db: AsyncSession, correlation_id: str) -> str | None:
+    result = await db.execute(
+        select(TelemetryEventRecord.payload)
+        .where(TelemetryEventRecord.correlation_id == correlation_id)
+        .order_by(desc(TelemetryEventRecord.created_at))
+        .limit(1)
+    )
+    payload = result.scalar_one_or_none()
+    if not isinstance(payload, dict):
+        return None
+    return extract_payload_hash(payload)

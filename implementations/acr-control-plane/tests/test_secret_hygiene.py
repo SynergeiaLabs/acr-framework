@@ -11,6 +11,7 @@ def test_generate_secrets_returns_expected_keys() -> None:
 
     assert secret_bundle["JWT_SECRET_KEY"]
     assert secret_bundle["KILLSWITCH_SECRET"]
+    assert secret_bundle["AUDIT_SIGNING_SECRET"]
     assert secret_bundle["OPERATOR_SESSION_SECRET"]
     assert secret_bundle["EXECUTOR_HMAC_SECRET"]
     assert "platform-admin" in secret_bundle["OPERATOR_API_KEYS_JSON"]

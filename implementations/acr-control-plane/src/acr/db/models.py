@@ -97,7 +97,7 @@ class PolicyDecisionRecord(Base):
     __tablename__ = "policy_decisions"
     __table_args__ = (
         CheckConstraint(
-            "decision IN ('allow', 'deny', 'escalate')",
+            "decision IN ('allow', 'deny', 'modify', 'escalate')",
             name="ck_policy_decisions_decision",
         ),
     )
@@ -108,7 +108,7 @@ class PolicyDecisionRecord(Base):
         String(128), ForeignKey("agents.agent_id", ondelete="CASCADE"), nullable=False, index=True
     )
     policy_id: Mapped[str] = mapped_column(String(128), nullable=False)
-    decision: Mapped[str] = mapped_column(String(16), nullable=False)  # allow | deny | escalate
+    decision: Mapped[str] = mapped_column(String(16), nullable=False)  # allow | deny | modify | escalate
     reason: Mapped[str | None] = mapped_column(Text, nullable=True)
     tool_name: Mapped[str | None] = mapped_column(String(128), nullable=True)
     latency_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)

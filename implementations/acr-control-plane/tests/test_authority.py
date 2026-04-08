@@ -128,7 +128,7 @@ class TestApprovalRouterHTTP:
         )
         assert resp.status_code == 200
         assert resp.json()["status"] == "approved"
-        assert resp.json()["decided_by"] == "ops@example.com"
+        assert resp.json()["decided_by"] == "test-operator"
 
     async def test_approve_via_http_executes_when_enabled(
         self, async_client: AsyncClient, db: AsyncSession, sample_agent

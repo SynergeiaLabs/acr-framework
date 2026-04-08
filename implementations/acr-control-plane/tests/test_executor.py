@@ -194,9 +194,11 @@ def test_production_requires_executor_secret_for_live_execution(monkeypatch) -> 
     monkeypatch.setattr(settings, "acr_env", "production")
     monkeypatch.setattr(settings, "execute_allowed_actions", True)
     monkeypatch.setattr(settings, "executor_hmac_secret", "")
+    monkeypatch.setattr(settings, "audit_signing_secret", "a" * 64)
     monkeypatch.setattr(settings, "jwt_secret_key", "z" * 64)
     monkeypatch.setattr(settings, "killswitch_secret", "k" * 64)
     monkeypatch.setattr(settings, "operator_api_keys_json", '{"bootstrap":{"subject":"ops","roles":["security_admin"]}}')
+    monkeypatch.setattr(settings, "service_operator_api_key", "svc_" + ("x" * 40))
     monkeypatch.setattr(settings, "oidc_enabled", False)
 
     with pytest.raises(RuntimeError, match="EXECUTOR_HMAC_SECRET"):
@@ -207,9 +209,11 @@ def test_production_requires_strong_executor_credential_secret(monkeypatch) -> N
     monkeypatch.setattr(settings, "acr_env", "production")
     monkeypatch.setattr(settings, "execute_allowed_actions", False)
     monkeypatch.setattr(settings, "executor_credential_secret", "short")
+    monkeypatch.setattr(settings, "audit_signing_secret", "a" * 64)
     monkeypatch.setattr(settings, "jwt_secret_key", "z" * 64)
     monkeypatch.setattr(settings, "killswitch_secret", "k" * 64)
     monkeypatch.setattr(settings, "operator_api_keys_json", '{"bootstrap":{"subject":"ops","roles":["security_admin"]}}')
+    monkeypatch.setattr(settings, "service_operator_api_key", "svc_" + ("x" * 40))
     monkeypatch.setattr(settings, "oidc_enabled", False)
 
     with pytest.raises(RuntimeError, match="EXECUTOR_CREDENTIAL_SECRET"):

@@ -4,7 +4,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 # Lifecycle: agents move draft → active → deprecated → retired.
 #  - draft:      registered but not yet allowed to evaluate (initial setup)
@@ -26,8 +26,34 @@ class DataAccessEntry(BaseModel):
 class AgentBoundaries(BaseModel):
     max_actions_per_minute: int = 30
     max_cost_per_hour_usd: float = 5.0
+    default_action_cost_usd: float | None = None
+    tool_costs_usd: dict[str, float] = Field(default_factory=dict)
     allowed_regions: list[str] = Field(default_factory=list)
     credential_rotation_days: int = 90
+
+    @field_validator("max_cost_per_hour_usd")
+    @classmethod
+    def _validate_max_cost(cls, value: float) -> float:
+        if value < 0:
+            raise ValueError("max_cost_per_hour_usd cannot be negative")
+        return value
+
+    @field_validator("default_action_cost_usd")
+    @classmethod
+    def _validate_default_cost(cls, value: float | None) -> float | None:
+        if value is not None and value < 0:
+            raise ValueError("default_action_cost_usd cannot be negative")
+        return value
+
+    @field_validator("tool_costs_usd")
+    @classmethod
+    def _validate_tool_costs(cls, value: dict[str, float]) -> dict[str, float]:
+        normalized: dict[str, float] = {}
+        for tool_name, cost in value.items():
+            if cost < 0:
+                raise ValueError(f"tool_costs_usd[{tool_name!r}] cannot be negative")
+            normalized[str(tool_name)] = float(cost)
+        return normalized
 
 
 class AgentManifest(BaseModel):

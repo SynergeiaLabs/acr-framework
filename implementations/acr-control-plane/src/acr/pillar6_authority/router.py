@@ -63,7 +63,7 @@ async def approve(
 ) -> ApprovalResponse:
     record = await ap.approve(db, request_id, principal.subject, body.reason)
     if settings.execute_allowed_actions:
-        await ap.execute_approval(record)
+        await ap.execute_approval(db, record)
     return _to_response(record)
 
 
@@ -91,5 +91,5 @@ async def override(
         raise HTTPException(status_code=422, detail="Break-glass override requires a reason")
     record = await ap.override(db, request_id, principal.subject, body.reason)
     if settings.execute_allowed_actions:
-        await ap.execute_approval(record)
+        await ap.execute_approval(db, record)
     return _to_response(record)

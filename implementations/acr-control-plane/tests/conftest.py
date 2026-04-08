@@ -115,9 +115,14 @@ async def sample_agent(db: AsyncSession):
         owner="support-engineering@example.com",
         purpose="Handle customer support tickets",
         risk_tier="medium",
-        allowed_tools=["query_customer_db", "send_email", "create_ticket"],
+        allowed_tools=["query_customer_db", "send_email", "create_ticket", "issue_refund"],
         forbidden_tools=["delete_customer"],
-        boundaries=AgentBoundaries(max_actions_per_minute=30, max_cost_per_hour_usd=5.0),
+        boundaries=AgentBoundaries(
+            max_actions_per_minute=30,
+            max_cost_per_hour_usd=5.0,
+            default_action_cost_usd=0.05,
+            tool_costs_usd={"query_customer_db": 0.01, "issue_refund": 0.25},
+        ),
     )
     record = await register_agent(db, req)
     await db.commit()

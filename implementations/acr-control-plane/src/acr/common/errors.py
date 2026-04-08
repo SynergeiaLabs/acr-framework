@@ -84,6 +84,16 @@ class PolicyEngineError(ACRError):
     error_code = "POLICY_ENGINE_ERROR"
 
 
+class RuntimeControlDependencyError(ACRError):
+    status_code = 503
+    error_code = "RUNTIME_CONTROL_DEPENDENCY_ERROR"
+
+
+class AuthoritativeSpendControlError(ACRError):
+    status_code = 503
+    error_code = "AUTHORITATIVE_SPEND_CONTROL_ERROR"
+
+
 # ── Approval ──────────────────────────────────────────────────────────────────
 
 class ApprovalPendingError(ACRError):

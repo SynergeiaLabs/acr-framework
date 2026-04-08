@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import time
 from datetime import timedelta
+from typing import Any
 
 import httpx
 import structlog
@@ -28,20 +29,24 @@ _RETRYABLE_STATUS = {429, 500, 502, 503, 504}
 
 # Module-level connection-pooled client (avoids creating a new TCP connection per call)
 _opa_client: httpx.AsyncClient | None = None
+_opa_client_factory: object | None = None
 
 
 def get_opa_client() -> httpx.AsyncClient:
-    global _opa_client
-    if _opa_client is None:
+    global _opa_client, _opa_client_factory
+    current_factory = httpx.AsyncClient
+    if _opa_client is None or _opa_client_factory is not current_factory:
         _opa_client = httpx.AsyncClient(base_url=settings.opa_url, timeout=_TIMEOUT)
+        _opa_client_factory = current_factory
     return _opa_client
 
 
 async def close_opa_client() -> None:
-    global _opa_client
+    global _opa_client, _opa_client_factory
     if _opa_client is not None:
         await _opa_client.aclose()
         _opa_client = None
+        _opa_client_factory = None
 
 
 # Circuit breaker: opens after 5 failures in 60 seconds, fails secure
@@ -146,9 +151,12 @@ async def evaluate_policy(
 
     deny_reasons: list[str] = result.get("deny", [])
     allow: bool = result.get("allow", False)
+    modify: bool = result.get("modify", False)
     escalate: bool = result.get("escalate", False)
     escalate_queue: str = result.get("escalate_queue", "default")
     escalate_sla: int = result.get("escalate_sla_minutes", 240)
+    modified_action = _coerce_dict(result.get("modified_action"))
+    modified_parameters = _coerce_dict(result.get("modified_parameters"))
 
     decisions: list[PolicyDecision] = []
 
@@ -171,6 +179,26 @@ async def evaluate_policy(
             reason=reason,
             latency_ms=elapsed_ms,
         ))
+    elif modify:
+        modified_payload = modified_action or modified_parameters
+        if modified_payload is None:
+            final = "deny"
+            reason = "Policy requested modify without supplying a transformed payload"
+            decisions.append(PolicyDecision(
+                policy_id="acr-invalid-modify",
+                decision="deny",
+                reason=reason,
+                latency_ms=elapsed_ms,
+            ))
+        else:
+            final = "modify"
+            reason = "Action transformed by runtime policy"
+            decisions.append(PolicyDecision(
+                policy_id="acr-modify",
+                decision="modify",
+                reason=reason,
+                latency_ms=elapsed_ms,
+            ))
     elif allow:
         final = "allow"
         reason = None
@@ -204,5 +232,15 @@ async def evaluate_policy(
         reason=reason,
         approval_queue=escalate_queue if escalate else None,
         sla_minutes=escalate_sla if escalate else None,
+        modified_action=modified_action if final == "modify" else None,
+        modified_parameters=modified_parameters if final == "modify" else None,
         latency_ms=elapsed_ms,
     )
+
+
+def _coerce_dict(value: Any) -> dict[str, Any] | None:
+    if value is None:
+        return None
+    if not isinstance(value, dict):
+        return None
+    return value

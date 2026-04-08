@@ -55,23 +55,31 @@ class TriggeredRule(BaseModel):
 class PolicyResult(BaseModel):
     policy_id: str
     policy_name: str | None = None
-    decision: Literal["allow", "deny", "escalate", "warn"] = "allow"
+    decision: Literal["allow", "deny", "modify", "escalate", "warn"] = "allow"
     reason: str | None = None
     latency_ms: int | None = None
     triggered_rules: list[TriggeredRule] = Field(default_factory=list)
 
 
 class OutputObject(BaseModel):
-    decision: Literal["allow", "deny", "escalate"]
+    decision: Literal["allow", "deny", "modify", "escalate"]
     reason: str | None = None
     approval_request_id: str | None = None
     filtered: bool = False
     filter_reason: str | None = None
+    modified_parameters: dict[str, Any] | None = None
 
 
 class AcrControlPlaneMetadata(BaseModel):
     version: str
     enforcement_point: str = "gateway"
+
+
+class IntegrityMetadata(BaseModel):
+    payload_sha256: str
+    previous_event_sha256: str | None = None
+    record_signature: str | None = None
+    signature_algorithm: Literal["hmac-sha256"] = "hmac-sha256"
 
 
 class TelemetryMetadata(BaseModel):
@@ -80,6 +88,7 @@ class TelemetryMetadata(BaseModel):
     drift_score: float | None = None
     anomaly_flags: list[str] = Field(default_factory=list)
     compliance_tags: list[str] = Field(default_factory=list)
+    integrity: IntegrityMetadata | None = None
 
 
 # ── Top-level event ───────────────────────────────────────────────────────────

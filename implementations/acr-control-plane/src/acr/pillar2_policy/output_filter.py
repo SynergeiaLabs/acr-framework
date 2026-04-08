@@ -2,6 +2,8 @@
 from __future__ import annotations
 
 import re
+from dataclasses import dataclass
+from collections.abc import Mapping, Iterator
 from typing import Any
 
 import structlog
@@ -17,6 +19,28 @@ _PII_PATTERNS: list[tuple[str, re.Pattern[str]]] = [
 ]
 
 _REDACTION = "[REDACTED]"
+
+
+@dataclass(frozen=True)
+class ParameterFilterResult(Mapping[str, Any]):
+    parameters: dict[str, Any]
+    redacted_types: tuple[str, ...]
+
+    @property
+    def was_modified(self) -> bool:
+        return bool(self.redacted_types)
+
+    def __getitem__(self, key: str) -> Any:
+        return self.parameters[key]
+
+    def __iter__(self) -> Iterator[str]:
+        return iter(self.parameters)
+
+    def __len__(self) -> int:
+        return len(self.parameters)
+
+    def get(self, key: str, default: Any = None) -> Any:
+        return self.parameters.get(key, default)
 
 
 def _redact_string(value: str) -> tuple[str, list[str]]:
@@ -63,7 +87,7 @@ def filter_parameters(
     tool_name: str,
     parameters: dict[str, Any],
     correlation_id: str,
-) -> dict[str, Any]:
+) -> ParameterFilterResult:
     """
     Apply PII redaction to action parameters before forwarding.
     Logs any redactions made.
@@ -76,4 +100,7 @@ def filter_parameters(
             correlation_id=correlation_id,
             redacted_types=redacted_types,
         )
-    return cleaned
+    return ParameterFilterResult(
+        parameters=cleaned,
+        redacted_types=tuple(sorted(redacted_types)),
+    )

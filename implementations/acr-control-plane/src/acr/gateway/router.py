@@ -31,18 +31,27 @@ from acr.common.errors import (
     ACRError,
     AgentKilledError,
     AgentNotRegisteredError,
+    AuthoritativeSpendControlError,
     PolicyEngineError,
+    RuntimeControlDependencyError,
 )
 from acr.common.redis_client import get_redis_or_none
 from acr.common.time import iso_utcnow
-from acr.config import settings
+from acr.config import runtime_dependencies_fail_closed, settings
 from acr.db.database import BackgroundSessionLocal, async_session_factory, get_db
+from acr.db.models import PolicyDecisionRecord
 from acr.gateway.auth import require_agent_token
 from acr.gateway.executor import execute_action
+from acr.gateway.spend_control import (
+    adjust_authoritative_spend,
+    get_authoritative_projected_spend,
+    resolve_action_cost_usd,
+)
 from acr.pillar1_identity.registry import get_manifest
 from acr.pillar1_identity.validator import validate_agent_identity
 from acr.pillar2_policy.engine import evaluate_policy
-from acr.pillar2_policy.output_filter import filter_parameters
+from acr.pillar2_policy.models import PolicyDecision
+from acr.pillar2_policy.output_filter import ParameterFilterResult, filter_parameters
 from acr.pillar3_drift.baseline import record_metric_sample
 from acr.pillar4_observability.otel import acr_span, get_meter
 from acr.pillar4_observability.schema import LatencyBreakdown, PolicyResult
@@ -146,12 +155,43 @@ async def _persist_telemetry(event_dict: dict) -> None:
             logger.error("Background telemetry persist failed", error=str(exc), exc_info=True)
 
 
+async def _persist_policy_decisions(
+    *,
+    agent_id: str,
+    correlation_id: str,
+    tool_name: str,
+    decisions: list[dict],
+) -> None:
+    async with BackgroundSessionLocal() as db:
+        try:
+            for item in decisions:
+                db.add(
+                    PolicyDecisionRecord(
+                        correlation_id=correlation_id,
+                        agent_id=agent_id,
+                        policy_id=str(item["policy_id"]),
+                        decision=str(item["decision"]),
+                        reason=item.get("reason"),
+                        tool_name=tool_name,
+                        latency_ms=item.get("latency_ms"),
+                    )
+                )
+            await db.commit()
+        except Exception as exc:
+            await db.rollback()
+            logger.error("Background policy decision persist failed", error=str(exc), exc_info=True)
+
+
 # ── Helpers ───────────────────────────────────────────────────────────────────
 
 async def _get_rate_count(agent_id: str) -> int:
     """Increment and return the server-side action counter for this agent/minute."""
     redis = get_redis_or_none()
     if redis is None:
+        if runtime_dependencies_fail_closed():
+            raise RuntimeControlDependencyError(
+                "Authoritative rate-limit counter unavailable: Redis is not initialized"
+            )
         return 0
     now = datetime.now(timezone.utc)
     minute_bucket = now.strftime("%Y%m%d%H%M")
@@ -160,8 +200,31 @@ async def _get_rate_count(agent_id: str) -> int:
         count = await redis.incr(key)
         await redis.expire(key, 120)  # expire after 2 minutes
         return count
-    except Exception:
+    except Exception as exc:
+        if runtime_dependencies_fail_closed():
+            raise RuntimeControlDependencyError(
+                f"Authoritative rate-limit counter unavailable: {exc}"
+            ) from exc
         return 0
+
+
+def _resolve_action_cost_usd(manifest, tool_name: str) -> float:
+    return resolve_action_cost_usd(manifest, tool_name)
+
+
+async def _get_authoritative_projected_spend(agent_id: str, estimated_action_cost_usd: float) -> float:
+    return await get_authoritative_projected_spend(agent_id, estimated_action_cost_usd)
+
+
+async def _adjust_authoritative_spend(agent_id: str, delta_usd: float) -> None:
+    await adjust_authoritative_spend(agent_id, delta_usd)
+
+
+def _filter_reason(filter_result: ParameterFilterResult) -> str | None:
+    if not filter_result.was_modified:
+        return None
+    redacted = ", ".join(filter_result.redacted_types)
+    return f"Sensitive fields were redacted by output controls ({redacted})"
 
 
 async def _get_cached_drift_score(agent_id: str) -> float | None:
@@ -287,7 +350,17 @@ async def evaluate(
             effective_count = int(server_count * (100 / enriched_context_throttle_pct))
         else:
             effective_count = server_count
-        enriched_context = {**req.context, "actions_this_minute": effective_count}
+
+        estimated_action_cost_usd = _resolve_action_cost_usd(manifest, req.action.tool_name)
+        projected_hourly_spend_usd = await _get_authoritative_projected_spend(
+            req.agent_id,
+            estimated_action_cost_usd,
+        )
+        enriched_context = {
+            **req.context,
+            "actions_this_minute": effective_count,
+            "hourly_spend_usd": projected_hourly_spend_usd,
+        }
 
         # ── [4] Policy evaluation (OPA) ───────────────────────────────────────
         with acr_span("policy_evaluation", {"agent.id": req.agent_id, "action.tool": req.action.tool_name}):
@@ -300,11 +373,48 @@ async def evaluate(
             policy_ms = int((time.monotonic() - t0) * 1000)
 
         # ── [5] Output filter — PII redaction ─────────────────────────────────
-        filtered_params = filter_parameters(
-            req.action.tool_name,
-            req.action.parameters,
+        effective_action = req.action.model_dump()
+        if policy_result.final_decision == "modify":
+            if policy_result.modified_action is not None:
+                candidate_tool_name = policy_result.modified_action.get("tool_name", req.action.tool_name)
+                if candidate_tool_name != req.action.tool_name:
+                    return JSONResponse(
+                        status_code=403,
+                        content={
+                            "decision": "deny",
+                            "correlation_id": correlation_id,
+                            "reason": "Runtime policy attempted to modify the action tool_name",
+                            "error_code": "INVALID_MODIFY_DECISION",
+                        },
+                    )
+                effective_action.update(policy_result.modified_action)
+                effective_action.setdefault("description", req.action.description)
+            elif policy_result.modified_parameters is not None:
+                effective_action["parameters"] = policy_result.modified_parameters
+
+        filter_result = filter_parameters(
+            effective_action["tool_name"],
+            effective_action.get("parameters") or {},
             correlation_id,
         )
+        effective_action["parameters"] = filter_result.parameters
+
+        response_decision = policy_result.final_decision
+        response_reason = policy_result.reason
+        response_decisions = list(policy_result.decisions)
+        if response_decision == "allow" and filter_result.was_modified:
+            response_decision = "modify"
+            response_reason = _filter_reason(filter_result)
+            response_decisions.append(
+                PolicyDecision(
+                    policy_id="acr-output-modify",
+                    decision="modify",
+                    reason=response_reason,
+                    latency_ms=0,
+                )
+            )
+        elif response_decision == "modify" and not response_reason:
+            response_reason = _filter_reason(filter_result) or "Action transformed by runtime policy"
 
         total_ms = int((time.monotonic() - t_start) * 1000)
         end_time = iso_utcnow()
@@ -316,24 +426,24 @@ async def evaluate(
                 reason=d.reason,
                 latency_ms=d.latency_ms,
             )
-            for d in policy_result.decisions
+            for d in response_decisions
         ]
 
         # Fetch cached drift score for inclusion in response
         drift_score = await _get_cached_drift_score(req.agent_id)
 
         # Record OTEL metrics for all decisions
-        _record_evaluate_metrics(req.agent_id, policy_result.final_decision, total_ms)
+        _record_evaluate_metrics(req.agent_id, response_decision, total_ms)
 
         # ── [6] Escalate → approval queue ─────────────────────────────────────
-        if policy_result.final_decision == "escalate":
+        if response_decision == "escalate":
             approval = await create_approval_request(
                 db,
                 correlation_id=correlation_id,
                 agent_id=req.agent_id,
-                tool_name=req.action.tool_name,
-                parameters=filtered_params,
-                description=req.action.description,
+                tool_name=effective_action["tool_name"],
+                parameters=effective_action["parameters"],
+                description=effective_action.get("description"),
                 approval_queue=policy_result.approval_queue or "default",
                 sla_minutes=policy_result.sla_minutes or 240,
             )
@@ -349,7 +459,7 @@ async def evaluate(
                     manifest=manifest,
                     correlation_id=correlation_id,
                     req=req,
-                    filtered_params=filtered_params,
+                    filtered_params=effective_action["parameters"],
                     start_time=start_time,
                     end_time=end_time,
                     total_ms=total_ms,
@@ -357,10 +467,27 @@ async def evaluate(
                     policy_ms=policy_ms,
                     telemetry_policies=telemetry_policies,
                     output_decision="escalate",
-                    output_reason=policy_result.reason,
+                    output_reason=response_reason,
                     approval_request_id=approval.request_id,
                     drift_score=drift_score,
+                    output_filtered=filter_result.was_modified,
+                    filter_reason=_filter_reason(filter_result),
+                    modified_parameters=effective_action["parameters"] if response_decision == "modify" else None,
+                    tool_name=effective_action["tool_name"],
+                    description=effective_action.get("description"),
+                    custom={
+                        "estimated_cost_usd": estimated_action_cost_usd,
+                        "authoritative_hourly_spend_usd": projected_hourly_spend_usd,
+                        "cost_basis": "authorization_estimate",
+                    },
                 ),
+            )
+            background_tasks.add_task(
+                _persist_policy_decisions,
+                agent_id=req.agent_id,
+                correlation_id=correlation_id,
+                tool_name=effective_action["tool_name"],
+                decisions=[d.model_dump(mode="json") for d in response_decisions],
             )
             return JSONResponse(
                 status_code=202,
@@ -368,18 +495,18 @@ async def evaluate(
                     "decision": "escalate",
                     "correlation_id": correlation_id,
                     "approval_request_id": approval.request_id,
-                    "reason": policy_result.reason,
+                    "reason": response_reason,
                     "approval_queue": approval.approval_queue,
                     "sla_minutes": approval.sla_minutes,
                 },
             )
 
         # ── [7] Deny ──────────────────────────────────────────────────────────
-        if policy_result.final_decision == "deny":
+        if response_decision == "deny":
             _queue_background_tasks(
                 background_tasks,
                 agent_id=req.agent_id,
-                tool_name=req.action.tool_name,
+                tool_name=effective_action["tool_name"],
                 policy_denied=True,
                 total_ms=total_ms,
                 correlation_id=correlation_id,
@@ -388,7 +515,7 @@ async def evaluate(
                     manifest=manifest,
                     correlation_id=correlation_id,
                     req=req,
-                    filtered_params=filtered_params,
+                    filtered_params=effective_action["parameters"],
                     start_time=start_time,
                     end_time=end_time,
                     total_ms=total_ms,
@@ -396,38 +523,62 @@ async def evaluate(
                     policy_ms=policy_ms,
                     telemetry_policies=telemetry_policies,
                     output_decision="deny",
-                    output_reason=policy_result.reason,
+                    output_reason=response_reason,
                     approval_request_id=None,
                     drift_score=drift_score,
+                    output_filtered=filter_result.was_modified,
+                    filter_reason=_filter_reason(filter_result),
+                    modified_parameters=effective_action["parameters"] if response_decision == "modify" else None,
+                    tool_name=effective_action["tool_name"],
+                    description=effective_action.get("description"),
+                    custom={
+                        "estimated_cost_usd": estimated_action_cost_usd,
+                        "authoritative_hourly_spend_usd": projected_hourly_spend_usd,
+                        "cost_basis": "authorization_estimate",
+                    },
                 ),
+            )
+            background_tasks.add_task(
+                _persist_policy_decisions,
+                agent_id=req.agent_id,
+                correlation_id=correlation_id,
+                tool_name=effective_action["tool_name"],
+                decisions=[d.model_dump(mode="json") for d in response_decisions],
             )
             return JSONResponse(
                 status_code=403,
                 content={
                     "decision": "deny",
                     "correlation_id": correlation_id,
-                    "reason": policy_result.reason,
+                    "reason": response_reason,
                     "policy_decisions": [
                         {"policy_id": d.policy_id, "decision": d.decision, "reason": d.reason}
-                        for d in policy_result.decisions
+                        for d in response_decisions
                     ],
                 },
             )
 
-        # ── [8] Allow ─────────────────────────────────────────────────────────
+        # ── [8] Allow / Modify ────────────────────────────────────────────────
         execution_result = None
         if settings.execute_allowed_actions:
-            execution_result = await execute_action(
-                agent_id=req.agent_id,
-                tool_name=req.action.tool_name,
-                parameters=req.action.parameters,
-                description=req.action.description,
-                correlation_id=correlation_id,
-            )
+            await _adjust_authoritative_spend(req.agent_id, estimated_action_cost_usd)
+            try:
+                execution_result = await execute_action(
+                    agent_id=req.agent_id,
+                    tool_name=effective_action["tool_name"],
+                    parameters=effective_action["parameters"],
+                    description=effective_action.get("description"),
+                    correlation_id=correlation_id,
+                )
+            except Exception:
+                await _adjust_authoritative_spend(req.agent_id, -estimated_action_cost_usd)
+                raise
+        else:
+            await _adjust_authoritative_spend(req.agent_id, estimated_action_cost_usd)
         _queue_background_tasks(
             background_tasks,
             agent_id=req.agent_id,
-            tool_name=req.action.tool_name,
+            tool_name=effective_action["tool_name"],
             policy_denied=False,
             total_ms=total_ms,
             correlation_id=correlation_id,
@@ -436,29 +587,56 @@ async def evaluate(
                 manifest=manifest,
                 correlation_id=correlation_id,
                 req=req,
-                filtered_params=filtered_params,
+                filtered_params=effective_action["parameters"],
                 start_time=start_time,
                 end_time=end_time,
                 total_ms=total_ms,
                 identity_ms=identity_ms,
                 policy_ms=policy_ms,
                 telemetry_policies=telemetry_policies,
-                output_decision="allow",
-                output_reason=None,
+                output_decision=response_decision,
+                output_reason=response_reason,
                 approval_request_id=None,
                 drift_score=drift_score,
+                output_filtered=filter_result.was_modified,
+                filter_reason=_filter_reason(filter_result),
+                modified_parameters=effective_action["parameters"] if response_decision == "modify" else None,
+                tool_name=effective_action["tool_name"],
+                description=effective_action.get("description"),
+                custom={
+                    "estimated_cost_usd": estimated_action_cost_usd,
+                    "authoritative_hourly_spend_usd": projected_hourly_spend_usd,
+                    "cost_basis": "authorization_estimate",
+                },
             ),
         )
+        background_tasks.add_task(
+            _persist_policy_decisions,
+            agent_id=req.agent_id,
+            correlation_id=correlation_id,
+            tool_name=effective_action["tool_name"],
+            decisions=[d.model_dump(mode="json") for d in response_decisions],
+        )
         content = {
-            "decision": "allow",
+            "decision": response_decision,
             "correlation_id": correlation_id,
             "policy_decisions": [
-                {"policy_id": d.policy_id, "decision": d.decision}
-                for d in policy_result.decisions
+                {"policy_id": d.policy_id, "decision": d.decision, "reason": d.reason}
+                for d in response_decisions
             ],
             "drift_score": drift_score,
             "latency_ms": total_ms,
+            "estimated_cost_usd": estimated_action_cost_usd,
+            "authoritative_hourly_spend_usd": projected_hourly_spend_usd,
         }
+        if response_reason:
+            content["reason"] = response_reason
+        if response_decision == "modify":
+            content["modified_action"] = {
+                "tool_name": effective_action["tool_name"],
+                "parameters": effective_action["parameters"],
+                "description": effective_action.get("description"),
+            }
         if execution_result is not None:
             content["execution_result"] = execution_result
         return JSONResponse(status_code=200, content=content)
@@ -541,6 +719,12 @@ async def _emit_telemetry_event(
     output_reason,
     approval_request_id,
     drift_score,
+    output_filtered=False,
+    filter_reason=None,
+    modified_parameters=None,
+    custom=None,
+    tool_name=None,
+    description=None,
 ) -> None:
     event = build_event(
         event_type=event_type,
@@ -549,9 +733,9 @@ async def _emit_telemetry_event(
         agent_capabilities=manifest.allowed_tools,
         correlation_id=correlation_id,
         session_id=req.context.get("session_id"),
-        tool_name=req.action.tool_name,
+        tool_name=tool_name or req.action.tool_name,
         parameters=filtered_params,
-        description=req.action.description,
+        description=description if description is not None else req.action.description,
         context=req.context,
         intent=req.intent.model_dump(exclude_none=True) if req.intent else {},
         start_time=start_time,
@@ -563,6 +747,10 @@ async def _emit_telemetry_event(
         output_reason=output_reason,
         approval_request_id=approval_request_id,
         drift_score=drift_score,
+        output_filtered=output_filtered,
+        filter_reason=filter_reason,
+        modified_parameters=modified_parameters,
+        custom=custom,
     )
     log_event(event)
     await _persist_telemetry(event.model_dump(mode="json"))

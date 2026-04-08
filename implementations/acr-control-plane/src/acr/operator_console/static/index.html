@@ -29,7 +29,7 @@
             <button id="save-session" class="button primary">Save Session</button>
             <button id="clear-session" class="button ghost">Clear</button>
           </div>
-          <p class="hint">Use SSO when configured. API keys are still supported for bootstrap and break-glass access.</p>
+          <p class="hint">Use SSO when configured. API keys are supported for bootstrap and break-glass access and are kept in memory only for this tab.</p>
           <div id="session-state" class="status-pill neutral">Session not configured</div>
         </section>
 
@@ -114,6 +114,10 @@
                 <div class="inline-grid">
                   <input name="max_actions_per_minute" type="number" placeholder="max actions/min" value="30" />
                   <input name="max_cost_per_hour_usd" type="number" step="0.01" placeholder="max cost/hour" value="5" />
+                </div>
+                <div class="inline-grid">
+                  <input name="default_action_cost_usd" type="number" step="0.01" placeholder="default action cost" />
+                  <input name="tool_costs_usd_json" placeholder='tool costs JSON (for example {"send_email":0.02})' />
                 </div>
                 <button class="button primary" type="submit">Register Agent</button>
               </form>
@@ -209,6 +213,10 @@
                 <div class="inline-grid">
                   <input name="max_actions_per_minute" type="number" value="30" placeholder="max actions/min" />
                   <input name="max_cost_per_hour_usd" type="number" step="0.01" value="5" placeholder="max cost/hour" />
+                </div>
+                <div class="inline-grid">
+                  <input name="default_action_cost_usd" type="number" step="0.01" placeholder="default action cost" />
+                  <input name="tool_costs_usd_json" placeholder='tool costs JSON (for example {"issue_refund":0.25})' />
                 </div>
                 <div class="inline-grid">
                   <input name="escalate_tool" placeholder="tool requiring approval" />
