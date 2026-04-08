@@ -2,8 +2,8 @@
 
 <img src="https://autonomouscontrol.io/assets/ACR_1.png" alt="ACR Framework" width="780" />
 
-# **ACR Framework**
-### Autonomous Control & Resilience for Runtime AI Governance
+# **ACR Standard**
+### Agentic Control at Runtime
 
 **The control plane your autonomous AI agents need before you let them touch production.**
 
