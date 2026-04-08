@@ -1,6 +1,6 @@
-# Contributing to ACR Framework
+# Contributing to ACR Standard
 
-Thank you for your interest in contributing to the ACR (Autonomous Control & Resilience) Framework. ACR is an open reference architecture for runtime governance of autonomous AI systems. Contributions to specifications, design patterns, and documentation are welcome.
+Thank you for your interest in contributing to the ACR (Agentic Control at Runtime) Standard. ACR is an open reference architecture for runtime governance of autonomous AI systems. Contributions to specifications, design patterns, and documentation are welcome.
 
 ## Code of Conduct
 
@@ -20,7 +20,7 @@ This project adheres to a code of conduct. By participating, you are expected to
 ### Contribution Process
 
 1. **Review existing issues and discussions**  
-   Check [GitHub Issues](https://github.com/SynergeiaLabs/acr-framework/issues) and [GitHub Discussions](https://github.com/SynergeiaLabs/acr-framework/discussions) to see if your idea is already under discussion.
+   Check [GitHub Issues](https://github.com/AdamDiStefanoAI/acr-framework/issues) and [GitHub Discussions](https://github.com/AdamDiStefanoAI/acr-framework/discussions) to see if your idea is already under discussion.
 
 2. **Open an issue**  
    Describe your proposed contribution, the problem it addresses, and how it aligns with ACR principles. For large changes, discuss the approach before submitting a pull request.
@@ -62,7 +62,7 @@ When adding or moving documents, update internal links so they work from the new
 
 ### Questions
 
-- **Architecture and design:** [GitHub Discussions](https://github.com/SynergeiaLabs/acr-framework/discussions)
-- **Bugs and clarifications:** [GitHub Issues](https://github.com/SynergeiaLabs/acr-framework/issues)
+- **Architecture and design:** [GitHub Discussions](https://github.com/AdamDiStefanoAI/acr-framework/discussions)
+- **Bugs and clarifications:** [GitHub Issues](https://github.com/AdamDiStefanoAI/acr-framework/issues)
 
 Thank you for helping advance runtime governance for autonomous AI systems.
