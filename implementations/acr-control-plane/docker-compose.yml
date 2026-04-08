@@ -106,6 +106,30 @@ services:
           cpus: "0.1"
           memory: 64M
 
+  # ── ACR Migrations (one-shot) ──────────────────────────
+  # Runs `alembic upgrade head` against the database, then exits cleanly.
+  # The gateway service waits for this to finish (service_completed_successfully)
+  # before starting, so the schema is always up-to-date and migrations cannot
+  # be forgotten when running the stack locally or in CI.
+  acr-migrate:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: ["run-migrations"]
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-acr}:${POSTGRES_PASSWORD:-acr_dev_password}@postgres:5432/${POSTGRES_DB:-acr_control_plane}
+      ACR_ENV: ${ACR_ENV:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    restart: "no"
+    deploy:
+      resources:
+        limits:
+          cpus: "0.5"
+          memory: 256M
+
   # ── ACR Gateway (main service) ─────────────────────────
   acr-gateway:
     build:
@@ -144,6 +168,8 @@ services:
         condition: service_healthy
       acr-killswitch:
         condition: service_healthy
+      acr-migrate:
+        condition: service_completed_successfully
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/acr/health"]
       interval: 10s

@@ -25,6 +25,37 @@ spec:
                 matchLabels:
                   app: acr-gateway
               topologyKey: kubernetes.io/hostname
+      # Apply database migrations before the gateway container starts.
+      # Uses the same image so we never have to maintain a separate
+      # migration build. Alembic is idempotent — replicas racing each
+      # other are safe (the loser sees the schema already at head).
+      initContainers:
+        - name: alembic-upgrade
+          image: acr-gateway:1.0.0
+          imagePullPolicy: IfNotPresent
+          command: ["run-migrations"]
+          envFrom:
+            - configMapRef:
+                name: acr-gateway-config
+            - secretRef:
+                name: acr-gateway-secret
+          securityContext:
+            runAsNonRoot: true
+            runAsUser: 1000
+            readOnlyRootFilesystem: true
+            allowPrivilegeEscalation: false
+            capabilities:
+              drop: ["ALL"]
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              cpu: 500m
+              memory: 256Mi
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
       containers:
         - name: gateway
           image: acr-gateway:1.0.0
