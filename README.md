@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="acr-framework.png" alt="ACR Framework" width="780" />
+<img src="https://autonomouscontrol.io/assets/ACR_1.png" alt="ACR Framework" width="780" />
 
 # **ACR Framework**
 ### Autonomous Control & Resilience for Runtime AI Governance
