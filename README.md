@@ -3,7 +3,7 @@
 <img src="https://runtimecontrol.io/assets/ACR_1.png" alt="ACR Framework" width="780" />
 
 # **ACR Standard**
-### Agentic Control at Runtime
+### ACR: Agentic Control at Runtime
 
 **The control plane your autonomous AI agents need before you let them touch production.**
 
