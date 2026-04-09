@@ -212,6 +212,8 @@ Current highlights:
 - the repo includes a dedicated security workflow for CodeQL, Semgrep, Gitleaks, Trivy, and SBOM generation
 - production secret generation and secret-hygiene checks are in place
 - brokered downstream credential minting is implemented
+- release provenance and signing guidance now live in [docs/provenance-and-verification.md](docs/provenance-and-verification.md)
+- the enterprise review artifacts now live in [docs/compliance/README.md](docs/compliance/README.md)
 - the next major gap is reliability semantics under dependency failure
 
 ## Architecture
