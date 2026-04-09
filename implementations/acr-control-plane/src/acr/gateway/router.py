@@ -21,7 +21,6 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, BackgroundTasks, Depends
 from fastapi.responses import JSONResponse
-from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
 
 import structlog
@@ -42,6 +41,7 @@ from acr.db.database import BackgroundSessionLocal, async_session_factory, get_d
 from acr.db.models import PolicyDecisionRecord
 from acr.gateway.auth import require_agent_token
 from acr.gateway.executor import execute_action
+from acr.gateway.models import EvaluateRequest, EvaluateResponse
 from acr.gateway.spend_control import (
     adjust_authoritative_spend,
     get_authoritative_projected_spend,
@@ -70,29 +70,6 @@ _RATE_KEY_PREFIX = "acr:rate:"
 _DRIFT_SCORE_PREFIX = "acr:drift:score:"
 # Drift check runs at most once per N evaluations per agent (avoids DB hit every call)
 _DRIFT_CHECK_EVERY_N = 10
-
-
-# ── Request / Response models ─────────────────────────────────────────────────
-
-class ActionRequest(BaseModel):
-    tool_name: str
-    parameters: dict = Field(default_factory=dict)
-    description: str | None = None
-
-
-class IntentRequest(BaseModel):
-    goal: str | None = None
-    justification: str | None = None
-    expected_effects: list[str] = Field(default_factory=list)
-    requested_by_step: str | None = None
-    metadata: dict = Field(default_factory=dict)
-
-
-class EvaluateRequest(BaseModel):
-    agent_id: str
-    action: ActionRequest
-    context: dict = Field(default_factory=dict)
-    intent: IntentRequest | None = None
 
 
 # ── Background tasks ──────────────────────────────────────────────────────────
@@ -254,7 +231,7 @@ async def _should_run_drift_check(agent_id: str) -> bool:
 
 # ── Main endpoint ─────────────────────────────────────────────────────────────
 
-@router.post("/evaluate")
+@router.post("/evaluate", response_model=EvaluateResponse)
 async def evaluate(
     req: EvaluateRequest,
     background_tasks: BackgroundTasks,

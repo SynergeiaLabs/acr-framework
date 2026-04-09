@@ -1,0 +1,164 @@
+name: ACR Control Plane Release
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+permissions:
+  contents: read
+
+env:
+  CONTROL_PLANE_DIR: implementations/acr-control-plane
+  COMPLIANCE_OUTPUT_DIR: dist/compliance
+  PACKAGE_BASENAME: acr-control-plane-compliance-package-${{ github.ref_name }}
+
+jobs:
+  docker-publish:
+    name: Publish ${{ matrix.service }} image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+      id-token: write
+      attestations: write
+    strategy:
+      matrix:
+        include:
+          - service: gateway
+            dockerfile: Dockerfile
+          - service: killswitch
+            dockerfile: Dockerfile.killswitch
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Normalize image name
+        id: image
+        shell: bash
+        run: |
+          repo_lc="$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')"
+          echo "uri=ghcr.io/${repo_lc}/acr-${{ matrix.service }}" >> "${GITHUB_OUTPUT}"
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ steps.image.outputs.uri }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,prefix=sha-
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v4.1.0
+
+      - name: Build and push ${{ matrix.service }}
+        id: build
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ env.CONTROL_PLANE_DIR }}
+          file: ${{ env.CONTROL_PLANE_DIR }}/${{ matrix.dockerfile }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+
+      - name: Attest build provenance
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-name: ${{ steps.image.outputs.uri }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
+
+      - name: Sign image with GitHub OIDC
+        run: cosign sign --yes "${IMAGE_URI}@${DIGEST}"
+        env:
+          IMAGE_URI: ${{ steps.image.outputs.uri }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+
+  compliance-package:
+    name: Build signed compliance package
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+      attestations: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v4.1.0
+
+      - name: Build compliance package
+        run: |
+          python scripts/build_compliance_package.py \
+            --implementation-dir . \
+            --version "${GITHUB_REF_NAME}" \
+            --source-ref "${GITHUB_SHA}" \
+            --output-dir "../../${COMPLIANCE_OUTPUT_DIR}"
+        working-directory: ${{ env.CONTROL_PLANE_DIR }}
+
+      - name: Sign compliance package tarball
+        run: |
+          cosign sign-blob --yes \
+            --bundle "${COMPLIANCE_OUTPUT_DIR}/${PACKAGE_BASENAME}.sigstore.json" \
+            "${COMPLIANCE_OUTPUT_DIR}/${PACKAGE_BASENAME}.tar.gz"
+
+      - name: Attest compliance package provenance
+        uses: actions/attest-build-provenance@v3
+        with:
+          subject-path: ${{ env.COMPLIANCE_OUTPUT_DIR }}/${{ env.PACKAGE_BASENAME }}.tar.gz
+
+      - name: Upload compliance release assets
+        uses: actions/upload-artifact@v4
+        with:
+          name: acr-control-plane-compliance-assets
+          path: |
+            ${{ env.COMPLIANCE_OUTPUT_DIR }}/${{ env.PACKAGE_BASENAME }}.tar.gz
+            ${{ env.COMPLIANCE_OUTPUT_DIR }}/${{ env.PACKAGE_BASENAME }}.manifest.json
+            ${{ env.COMPLIANCE_OUTPUT_DIR }}/${{ env.PACKAGE_BASENAME }}.sha256
+            ${{ env.COMPLIANCE_OUTPUT_DIR }}/${{ env.PACKAGE_BASENAME }}.sigstore.json
+          retention-days: 30
+
+  github-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: [docker-publish, compliance-package]
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download compliance assets
+        uses: actions/download-artifact@v4
+        with:
+          name: acr-control-plane-compliance-assets
+          path: dist/release-assets
+
+      - name: Create release
+        uses: softprops/action-gh-release@v2
+        with:
+          generate_release_notes: true
+          make_latest: true
+          files: |
+            dist/release-assets/${{ env.PACKAGE_BASENAME }}.tar.gz
+            dist/release-assets/${{ env.PACKAGE_BASENAME }}.manifest.json
+            dist/release-assets/${{ env.PACKAGE_BASENAME }}.sha256
+            dist/release-assets/${{ env.PACKAGE_BASENAME }}.sigstore.json

@@ -42,7 +42,7 @@ Downstream executors can require:
 The helper dependency `acr.gateway.executor_auth.require_gateway_execution` verifies that the token is valid and that it authorizes the exact payload being executed.
 The helper dependency `acr.gateway.executor_auth.require_brokered_execution_credential` verifies the downstream credential and its intended audience.
 
-If you are integrating with workflow builders like `n8n`, treat these executor controls as the protected downstream boundary. See [orchestrators.md](/Users/adamdistefano/Desktop/control_plane/docs/orchestrators.md).
+If you are integrating with workflow builders like `n8n`, treat these executor controls as the protected downstream boundary. See [orchestrators.md](orchestrators.md).
 
 ---
 

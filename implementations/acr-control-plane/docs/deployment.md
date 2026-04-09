@@ -16,6 +16,9 @@ docker-compose logs -f acr-gateway
 
 ## Production Deployment
 
+The supported production path is the Kubernetes overlay at [deploy/k8s/overlays/production/README.md](../deploy/k8s/overlays/production/README.md).
+Use `deploy/k8s/base` as the reusable foundation, not as the final production install target.
+
 ### Security hardening
 
 1. **Rotate all secrets** before deploying:
@@ -129,8 +132,8 @@ If you are layering ACR under `n8n`, LangGraph, or a custom workflow tool:
 
 Reference guide:
 
-- [orchestrator integration guide](/Users/adamdistefano/Desktop/control_plane/docs/orchestrators.md)
-- [n8n example](/Users/adamdistefano/Desktop/control_plane/examples/n8n/README.md)
+- [orchestrator integration guide](orchestrators.md)
+- [n8n example](../examples/n8n/README.md)
 
 ### Scaling
 
@@ -155,18 +158,13 @@ Key metrics to alert on:
 
 ### Kubernetes manifests
 
-This repo includes a production-oriented Kubernetes base at
-[kustomization.yaml](/Users/adamdistefano/Desktop/control_plane/deploy/k8s/base/kustomization.yaml).
+This repo includes:
 
-It includes:
-- gateway deployment/service
-- kill-switch deployment/service
-- OPA deployment/service in discovery mode
-- config and secret templates
-- starter network policy
+- a reusable base at [deploy/k8s/base/kustomization.yaml](../deploy/k8s/base/kustomization.yaml)
+- the blessed production overlay at [deploy/k8s/overlays/production/kustomization.yaml](../deploy/k8s/overlays/production/kustomization.yaml)
 
-Apply with:
+Production apply path:
 
 ```bash
-kubectl apply -k deploy/k8s/base
+kubectl apply -k deploy/k8s/overlays/production
 ```

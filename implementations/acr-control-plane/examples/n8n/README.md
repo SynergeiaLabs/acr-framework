@@ -24,8 +24,8 @@ n8n Trigger / Workflow
 
 ## Files In This Example
 
-- [workflow JSON](/Users/adamdistefano/Desktop/control_plane/examples/n8n/acr_sensitive_action_workflow.json)
-- [protected executor example](/Users/adamdistefano/Desktop/control_plane/examples/protected_executor/README.md)
+- [workflow JSON](acr_sensitive_action_workflow.json)
+- [protected executor example](../protected_executor/README.md)
 
 The workflow JSON is meant as a starting point, not a complete production export.
 

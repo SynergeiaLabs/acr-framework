@@ -51,12 +51,24 @@ Remaining follow-up:
 - tighten IAM and network controls so agents cannot talk to protected systems directly
 
 ### 5. Dependency Degradation Semantics
-Status: `next`
+Status: `in_progress`
 
 Scope:
 - explicit fail-open / fail-closed matrix by subsystem
 - runbooks for Redis, OPA, Postgres, and kill-switch degradation
 - load-tested latency and dependency-failure benchmarks
+
+Initial validation completed:
+- local failure / load / disaster-recovery validation was run on `2026-04-08`
+- report: `docs/failure-load-dr-validation-2026-04-08.md`
+
+Findings from that run:
+- OPA outage failed secure with `503 POLICY_ENGINE_ERROR`
+- Redis outage failed secure with `503 KILLSWITCH_ERROR`
+- PostgreSQL outage denied safely but surfaced as `500 INTERNAL_ERROR` instead of a dependency-specific contract
+- the independent kill-switch service can be unavailable while `/acr/ready` still reports `ready`
+- the documented full compose startup path is not yet dependable because the OPA service never becomes healthy in that gated startup flow on the validated machine
+- load stayed stable at `1000` requests / `25` concurrency, but p95 / p99 latency is still above an enterprise-grade hot-path target
 
 ### 6. Governed Baseline Lifecycle
 Status: `done`
@@ -84,7 +96,7 @@ What landed:
 - stronger protected executor packaging and deployment guidance
 
 Remaining follow-up:
-- provider-specific adapters beyond `n8n`
+- provider-specific adapters beyond LangGraph and `n8n`
 - deeper copy-paste examples for LangGraph and similar stacks
 
 Why it matters:
@@ -105,12 +117,14 @@ Why it matters:
 - behavior alone is often too late; intent metadata gives operators earlier context about why the system is attempting an action
 
 ### 9. Provenance and Artifact Signing
-Status: `planned`
+Status: `done`
 
-Scope:
-- signed container images
-- release provenance / attestation
-- verification guidance for deployers
+What landed:
+- active root release workflow for the control-plane release path
+- keyless Cosign signing for published container images
+- GitHub build provenance attestations for release images
+- signed release-time compliance package tarball
+- verification guidance for deployers in `docs/provenance-and-verification.md`
 
 ### 10. Kubernetes Policy Validation
 Status: `planned`
@@ -137,12 +151,28 @@ Scope:
 - cleaner approval and escalation operations for on-call teams
 
 ### 13. Reference Production Deployment
-Status: `planned`
+Status: `done`
 
-Scope:
-- one clearly blessed deployment model
-- network enforcement story
-- identity, secrets, observability, and rollback guidance
+What landed:
+- one clearly blessed Kubernetes production overlay under `deploy/k8s/overlays/production`
+- External Secrets based runtime secret management instead of applying example secrets
+- explicit production egress allowlists for managed dependencies and protected executors
+- OIDC-first operator auth, object-storage-backed bundle delivery, and rollout guidance in the production install docs
+
+Remaining follow-up:
+- optional admission-policy examples for clusters enforcing extra guardrails
+- provider-specific examples for secret stores and workload identity
+
+### 14. Compliance Package
+Status: `done`
+
+What landed:
+- compliance review package under `docs/compliance/`
+- threat model, shared-responsibility matrix, control mapping, evidence package, and external assessment scope
+- build script for a versioned compliance package release artifact
+
+Why it matters:
+- enterprise review teams need an assessable package, not only source code and marketing claims
 
 ## Adoption Test
 

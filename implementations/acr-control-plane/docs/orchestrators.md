@@ -2,6 +2,8 @@
 
 This guide explains how to place the ACR control plane underneath tools like `n8n`, LangGraph, custom agent runtimes, or internal workflow builders.
 
+If you want a typed integration surface instead of direct HTTP calls, start with [sdk.md](sdk.md).
+
 The key design choice is:
 
 **ACR should be the mandatory enforcement layer for sensitive actions, not an optional best-practice inside each workflow.**
@@ -87,8 +89,8 @@ Recommended node flow:
 
 If you want a reference shape, see:
 
-- [n8n README](/Users/adamdistefano/Desktop/control_plane/examples/n8n/README.md)
-- [n8n workflow JSON](/Users/adamdistefano/Desktop/control_plane/examples/n8n/acr_sensitive_action_workflow.json)
+- [n8n README](../examples/n8n/README.md)
+- [n8n workflow JSON](../examples/n8n/acr_sensitive_action_workflow.json)
 
 ## Protected Executor Pattern
 
@@ -103,8 +105,8 @@ Instead:
 
 Reference implementation:
 
-- [protected executor app](/Users/adamdistefano/Desktop/control_plane/examples/protected_executor/app.py)
-- [protected executor guide](/Users/adamdistefano/Desktop/control_plane/examples/protected_executor/README.md)
+- [protected executor app](../examples/protected_executor/app.py)
+- [protected executor guide](../examples/protected_executor/README.md)
 
 ## Adoption Guidance For Non-Engineering Teams
 
@@ -132,6 +134,9 @@ Before claiming orchestrator integration is production-ready, confirm:
 This repo already provides:
 
 - the gateway decision API
+- an official Python SDK
+- a LangGraph/LangChain-style tool guard
+- a TypeScript SDK
 - approval workflows
 - evidence export
 - protected executor verification helpers

@@ -72,6 +72,9 @@ dev = [
     # Linting / formatting
     "ruff>=0.4.0,<1.0.0",
 ]
+integrations = [
+    "langchain-core>=0.3.0,<1.0.0",
+]
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/acr"]

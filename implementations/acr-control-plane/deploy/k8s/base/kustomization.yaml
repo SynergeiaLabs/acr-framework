@@ -5,7 +5,6 @@ resources:
   - namespace.yaml
   - rbac.yaml
   - gateway-configmap.yaml
-  - gateway-secret.example.yaml
   - gateway-deployment.yaml
   - gateway-service.yaml
   - killswitch-deployment.yaml

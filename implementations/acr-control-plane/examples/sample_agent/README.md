@@ -10,9 +10,9 @@ A simple demonstration agent that exercises all six ACR control pillars.
    docker-compose up --build
    ```
 
-2. Install the HTTP client:
+2. Install the control plane package:
    ```bash
-   pip install httpx
+   pip install -e ".[dev]"
    ```
 
 3. Export the development operator API key used for agent onboarding:
@@ -25,6 +25,12 @@ A simple demonstration agent that exercises all six ACR control pillars.
 ```bash
 python examples/sample_agent/agent.py
 ```
+
+The sample now uses the official Python SDK:
+
+- `ACRClient.ensure_agent_registered(...)`
+- `ACRClient.issue_agent_session(...)`
+- `ACRAgentSession.evaluate_action(...)`
 
 ## What it demonstrates
 
