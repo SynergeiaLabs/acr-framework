@@ -2,6 +2,8 @@
 
 This guide explains how to place the ACR control plane underneath tools like `n8n`, LangGraph, custom agent runtimes, or internal workflow builders.
 
+If you want a typed integration surface instead of direct HTTP calls, start with [sdk.md](sdk.md).
+
 The key design choice is:
 
 **ACR should be the mandatory enforcement layer for sensitive actions, not an optional best-practice inside each workflow.**
@@ -132,6 +134,9 @@ Before claiming orchestrator integration is production-ready, confirm:
 This repo already provides:
 
 - the gateway decision API
+- an official Python SDK
+- a LangGraph/LangChain-style tool guard
+- a TypeScript SDK
 - approval workflows
 - evidence export
 - protected executor verification helpers

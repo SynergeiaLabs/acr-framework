@@ -102,6 +102,12 @@ With the included stack, you can:
 
 The included sample agent shows the control plane denying unsafe actions and escalating high-risk ones.
 
+There is now an official [SDK and adapter guide](docs/sdk.md) covering:
+
+- a Python SDK
+- a LangGraph/LangChain-style tool guard
+- a TypeScript SDK
+
 There is also a runnable [protected executor example](examples/protected_executor/README.md) that verifies both `X-ACR-Execution-Token` and `X-ACR-Brokered-Credential`, so downstream services can reject direct-bypass requests that were not explicitly authorized by the gateway.
 
 For workflow builders and orchestration tools, there is now an explicit [orchestrator integration guide](docs/orchestrators.md) plus an [n8n reference example](examples/n8n/README.md) showing how to put ACR underneath the workflow layer instead of relying on optional user behavior.
@@ -215,6 +221,7 @@ Current highlights:
 - release provenance and signing guidance now live in [docs/provenance-and-verification.md](docs/provenance-and-verification.md)
 - the enterprise review artifacts now live in [docs/compliance/README.md](docs/compliance/README.md)
 - the blessed production deployment path now lives in [deploy/k8s/overlays/production/README.md](deploy/k8s/overlays/production/README.md)
+- official Python and TypeScript SDKs now live in [docs/sdk.md](docs/sdk.md)
 - the next major gap is reliability semantics under dependency failure
 
 ## Architecture

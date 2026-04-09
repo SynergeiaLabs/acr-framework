@@ -96,7 +96,7 @@ What landed:
 - stronger protected executor packaging and deployment guidance
 
 Remaining follow-up:
-- provider-specific adapters beyond `n8n`
+- provider-specific adapters beyond LangGraph and `n8n`
 - deeper copy-paste examples for LangGraph and similar stacks
 
 Why it matters:
