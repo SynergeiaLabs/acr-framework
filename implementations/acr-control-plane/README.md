@@ -214,6 +214,7 @@ Current highlights:
 - brokered downstream credential minting is implemented
 - release provenance and signing guidance now live in [docs/provenance-and-verification.md](docs/provenance-and-verification.md)
 - the enterprise review artifacts now live in [docs/compliance/README.md](docs/compliance/README.md)
+- the blessed production deployment path now lives in [deploy/k8s/overlays/production/README.md](deploy/k8s/overlays/production/README.md)
 - the next major gap is reliability semantics under dependency failure
 
 ## Architecture

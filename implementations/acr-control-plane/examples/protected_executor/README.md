@@ -68,14 +68,14 @@ That is the recommended production model:
 - protected executor verifies that ACR explicitly authorized the exact payload
 - internal system executes only after both checks pass
 
-For a higher-level integration view, see [docs/orchestrators.md](/Users/adamdistefano/Desktop/control_plane/docs/orchestrators.md).
+For a higher-level integration view, see [docs/orchestrators.md](../../docs/orchestrators.md).
 
 ## Make It More Reusable
 
 This example now supports a small amount of packaging and runtime configuration:
 
-- [Dockerfile](/Users/adamdistefano/Desktop/control_plane/examples/protected_executor/Dockerfile)
-- [env example](/Users/adamdistefano/Desktop/control_plane/examples/protected_executor/.env.example)
+- [Dockerfile](Dockerfile)
+- [env example](.env.example)
 - `PROTECTED_EXECUTOR_ALLOWED_TOOLS` to restrict which demo tools are exposed
 
 Example container run:

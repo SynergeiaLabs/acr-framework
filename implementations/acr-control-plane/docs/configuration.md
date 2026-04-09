@@ -29,6 +29,7 @@ All configuration is via environment variables.
 | `STRICT_DEPENDENCY_STARTUP` | `false` | If true, fail startup when Redis initialization fails. Recommended in production. |
 | `WEBHOOK_URL` | `` | HTTP endpoint to notify on new approval requests |
 | `WEBHOOK_HMAC_SECRET` | `` | HMAC-SHA256 signing key for webhook `X-ACR-Signature` header. Required if `WEBHOOK_URL` is set. |
+| `AUDIT_SIGNING_SECRET` | `dev_audit_signing_secret_change_me` | HMAC signing key for evidence bundles and audit-integrity metadata. Must be strong outside development/test. |
 | `OTEL_EXPORTER_OTLP_ENDPOINT` | `` | OTLP endpoint for traces (e.g. `http://jaeger:4318`) |
 | `OTEL_SERVICE_NAME` | `acr-control-plane` | OpenTelemetry service name |
 | `OPERATOR_API_KEYS_JSON` | `` | JSON object mapping operator API keys to `{subject, roles}` identities |
@@ -55,6 +56,7 @@ All configuration is via environment variables.
 | `EXECUTOR_CREDENTIAL_SECRET` | `` | Shared secret used to mint short-lived brokered downstream credentials in `X-ACR-Brokered-Credential` |
 | `EXECUTOR_CREDENTIAL_TTL_SECONDS` | `300` | Lifetime of the brokered downstream credential in seconds |
 | `EXECUTOR_TIMEOUT_SECONDS` | `8.0` | Timeout for downstream executor HTTP calls |
+| `REQUIRE_BUNDLE_AUTH` | `true` | Require operator auth on bundle/discovery endpoints. Set `false` when OPA pulls bundles directly and network policy is the enforcement boundary. |
 | `POLICY_BUNDLE_BACKEND` | `local` | Bundle publishing backend. Supported values: `local`, `s3`. |
 | `POLICY_BUNDLE_LOCAL_DIR` | `./var/policy_bundles` | Filesystem destination for published policy bundles |
 | `POLICY_BUNDLE_S3_BUCKET` | `` | S3 bucket or S3-compatible object-store bucket used when `POLICY_BUNDLE_BACKEND=s3` |
@@ -75,10 +77,12 @@ All configuration is via environment variables.
 - [ ] Configure OIDC and `OPERATOR_SESSION_SECRET` for production operator login
 - [ ] Set `SERVICE_OPERATOR_API_KEY` to a key with `killswitch_operator` or `security_admin`
 - [ ] Configure `WEBHOOK_URL` for approval notifications
+- [ ] Set `AUDIT_SIGNING_SECRET` for signed evidence export
 - [ ] Set `OTEL_EXPORTER_OTLP_ENDPOINT` for distributed tracing
 - [ ] Set `EXECUTE_ALLOWED_ACTIONS=true` and populate `EXECUTOR_INTEGRATIONS_JSON` or `TOOL_EXECUTOR_MAP_JSON`
 - [ ] Set a strong `EXECUTOR_HMAC_SECRET` and require downstream executors to verify `X-ACR-Execution-Token`
 - [ ] Set a strong `EXECUTOR_CREDENTIAL_SECRET` and require downstream executors to verify `X-ACR-Brokered-Credential`
+- [ ] Set `REQUIRE_BUNDLE_AUTH=false` if OPA will poll bundles directly without auth headers
 - [ ] Set `POLICY_BUNDLE_BACKEND` and a durable bundle destination
 - [ ] Use a managed PostgreSQL instance (PgBouncer for connection pooling)
 - [ ] Use a managed Redis instance (Redis Sentinel or Cluster for HA)

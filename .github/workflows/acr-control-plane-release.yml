@@ -27,13 +27,18 @@ jobs:
         include:
           - service: gateway
             dockerfile: Dockerfile
-            image: ghcr.io/${{ github.repository }}/acr-gateway
           - service: killswitch
             dockerfile: Dockerfile.killswitch
-            image: ghcr.io/${{ github.repository }}/acr-killswitch
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Normalize image name
+        id: image
+        shell: bash
+        run: |
+          repo_lc="$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')"
+          echo "uri=ghcr.io/${repo_lc}/acr-${{ matrix.service }}" >> "${GITHUB_OUTPUT}"
 
       - name: Log in to GitHub Container Registry
         uses: docker/login-action@v3
@@ -46,7 +51,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ matrix.image }}
+          images: ${{ steps.image.outputs.uri }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -74,14 +79,14 @@ jobs:
       - name: Attest build provenance
         uses: actions/attest-build-provenance@v3
         with:
-          subject-name: ${{ matrix.image }}
+          subject-name: ${{ steps.image.outputs.uri }}
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
 
       - name: Sign image with GitHub OIDC
         run: cosign sign --yes "${IMAGE_URI}@${DIGEST}"
         env:
-          IMAGE_URI: ${{ matrix.image }}
+          IMAGE_URI: ${{ steps.image.outputs.uri }}
           DIGEST: ${{ steps.build.outputs.digest }}
 
   compliance-package:

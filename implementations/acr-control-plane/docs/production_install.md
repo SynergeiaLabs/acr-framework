@@ -1,142 +1,171 @@
 # ACR Control Plane — Production Install Guide
 
-This is the shortest end-to-end path for taking the repo from GitHub to a real production deployment.
+This is the supported end-to-end production path.
+
+Use the production overlay at [deploy/k8s/overlays/production](../deploy/k8s/overlays/production/README.md), not `deploy/k8s/base`, for real deployments.
 
 ## 1. Prerequisites
 
-- Kubernetes cluster with ingress/load balancing
-- Managed PostgreSQL
-- Managed Redis
+- Kubernetes cluster
+- `ingress-nginx`
+- `cert-manager`
+- External Secrets Operator
+- managed PostgreSQL
+- managed Redis
 - OIDC identity provider
-- Internal business APIs for refunds, outbound email, and ticket creation
-- Object storage for policy bundles if using `POLICY_BUNDLE_BACKEND=s3`
+- S3 or S3-compatible object storage for policy bundles
+- internal executor endpoints for refunds, email, tickets, or other governed actions
 
 ## 2. Clone and install
 
 ```bash
-git clone https://github.com/SynergeiaLabs/acr-framework.git
+git clone https://github.com/AdamDiStefanoAI/acr-framework.git
 cd acr-framework/implementations/acr-control-plane
 pip install -e ".[dev]"
 ```
 
-## 3. Configure secrets
+## 3. Start from the blessed overlay
 
-Start with [gateway-secret.example.yaml](/Users/adamdistefano/Desktop/control_plane/deploy/k8s/base/gateway-secret.example.yaml) and replace every placeholder.
+The production overlay lives at:
 
-Generate strong values for:
+- [deploy/k8s/overlays/production/kustomization.yaml](../deploy/k8s/overlays/production/kustomization.yaml)
+
+It assumes:
+
+- OIDC-first operator auth
+- `ExternalSecret` as the source of `acr-gateway-secret`
+- object-storage-backed policy bundles
+- explicit network allowlists for managed services and internal executors
+
+## 4. Configure secrets
+
+Edit [external-secret.yaml](../deploy/k8s/overlays/production/external-secret.yaml) to point at your real secret store.
+
+At minimum, populate:
+
+- `DATABASE_URL`
+- `REDIS_URL`
 - `JWT_SECRET_KEY`
 - `KILLSWITCH_SECRET`
+- `SERVICE_OPERATOR_API_KEY`
+- `OPERATOR_API_KEYS_JSON`
 - `OPERATOR_SESSION_SECRET`
-- `WEBHOOK_HMAC_SECRET`
-- `EXECUTOR_HMAC_SECRET`
-
-## 4. Configure OIDC operator login
-
-Set these in [gateway-configmap.yaml](/Users/adamdistefano/Desktop/control_plane/deploy/k8s/base/gateway-configmap.yaml):
-
-- `OIDC_ENABLED=true`
-- `OIDC_ISSUER`
-- `OIDC_CLIENT_ID`
 - `OIDC_CLIENT_SECRET`
-- `OIDC_AUTHORIZE_URL`
-- `OIDC_TOKEN_URL`
-- `OIDC_JWKS_URL`
-- `OIDC_REDIRECT_URI`
-- `OIDC_ROLE_MAPPING_JSON`
+- `WEBHOOK_HMAC_SECRET`
+- `AUDIT_SIGNING_SECRET`
+- `EXECUTOR_HMAC_SECRET`
+- `EXECUTOR_CREDENTIAL_SECRET`
 
-Recommended role mapping:
-- platform admins -> `agent_admin`, `security_admin`, `auditor`, `approver`, `killswitch_operator`
-- approvers -> `approver`
-- auditors -> `auditor`
+If you use S3 credentials instead of workload identity, also provide:
 
-## 5. Configure executor integrations
+- `AWS_ACCESS_KEY_ID`
+- `AWS_SECRET_ACCESS_KEY`
 
-Set `EXECUTE_ALLOWED_ACTIONS=true` and define `EXECUTOR_INTEGRATIONS_JSON`.
+## 5. Configure runtime settings
 
-Supported providers:
-- `refund_api`
-- `email_api`
-- `ticket_api`
-- `http`
+Edit [gateway-configmap-patch.yaml](../deploy/k8s/overlays/production/gateway-configmap-patch.yaml).
 
-Example:
+Set:
 
-```json
-{
-  "issue_refund": {
-    "provider": "refund_api",
-    "url": "https://refunds.internal/api/refunds",
-    "api_key": "env:FINANCE_EXECUTOR_API_KEY",
-    "default_currency": "USD"
-  },
-  "send_email": {
-    "provider": "email_api",
-    "url": "https://messaging.internal/api/send",
-    "api_key": "env:EMAIL_EXECUTOR_API_KEY",
-    "from_address": "ops@example.com"
-  },
-  "create_ticket": {
-    "provider": "ticket_api",
-    "url": "https://tickets.internal/api/tickets",
-    "api_key": "env:TICKET_EXECUTOR_API_KEY",
-    "default_queue": "operations"
-  }
-}
+- public hostname and redirect URI
+- OIDC issuer and endpoint URLs
+- object-storage bucket details
+- OTLP endpoint if used
+
+Important production defaults in this path:
+
+- `SCHEMA_BOOTSTRAP_MODE=validate`
+- `STRICT_DEPENDENCY_STARTUP=true`
+- `REQUIRE_BUNDLE_AUTH=false`
+
+That last setting is intentional: OPA polls bundles directly, so network policy becomes the enforcement boundary for bundle delivery.
+
+## 6. Configure network enforcement
+
+Edit [networkpolicy-production.yaml](../deploy/k8s/overlays/production/networkpolicy-production.yaml).
+
+Replace the placeholder CIDRs for:
+
+- managed PostgreSQL
+- managed Redis
+- OIDC provider
+- object storage
+- OTLP collector
+- webhook endpoints if used
+
+If your protected executors run in-cluster, place them in a namespace labeled:
+
+```yaml
+acr.io/network-zone: protected-executors
 ```
 
-## 6. Configure policy bundle delivery
+If they run outside the cluster, add their CIDRs to the gateway egress allowlist instead.
 
-If using object storage, set:
-- `POLICY_BUNDLE_BACKEND=s3`
-- `POLICY_BUNDLE_S3_BUCKET`
-- `POLICY_BUNDLE_S3_PREFIX`
+## 7. Pin release images
 
-## 7. Run migrations
+The overlay ships with release tags as defaults. Before production promotion, replace them with digests:
 
 ```bash
-PYTHONPATH=src alembic upgrade head
+kustomize edit set image \
+  acr-gateway=ghcr.io/adamdistefanoai/acr-framework/acr-gateway@sha256:<gateway-digest> \
+  acr-killswitch=ghcr.io/adamdistefanoai/acr-framework/acr-killswitch@sha256:<killswitch-digest>
 ```
 
-## 8. Deploy Kubernetes base
+Then verify those digests using [provenance-and-verification.md](provenance-and-verification.md).
+
+If your registry packages are private, make sure the cluster has image-pull credentials or mirror the images into your internal registry before deployment.
+
+## 8. Build and review the rendered manifests
 
 ```bash
-kubectl apply -k deploy/k8s/base
+kubectl kustomize deploy/k8s/overlays/production
 ```
 
-## 9. Confirm runtime policy wiring
+Review for:
 
-The provided OPA deployment uses:
+- no example secrets
+- correct hostnames and CIDRs
+- expected image references
+- expected external secret mappings
+
+## 9. Apply the overlay
+
+```bash
+kubectl apply -k deploy/k8s/overlays/production
+```
+
+## 10. Confirm policy delivery
+
+The production OPA path uses:
+
 - `/acr/policy-bundles/discovery.json`
 
 Production policy flow:
-1. Create or edit a draft in the GUI
-2. Validate it
-3. Publish a versioned release
-4. Activate the release
-5. OPA pulls the active runtime bundle automatically
 
-## 10. First operator login
+1. Create or edit a draft in the console.
+2. Validate it.
+3. Publish a versioned release.
+4. Activate the release.
+5. OPA pulls the active runtime bundle automatically.
+
+## 11. First operator login
 
 Open:
+
 - `https://your-domain/console`
 
 Use OIDC for normal login. Keep API keys for bootstrap and break-glass only.
 
-## 11. First production agent
-
-From the console:
-- register the agent
-- issue an agent token
-- create or load a policy draft
-- publish and activate the policy
-- verify the agent can call `/acr/evaluate`
-
 ## 12. Readiness checklist
 
+- `kubectl -n acr-system get externalsecret,secret`
+- `kubectl -n acr-system rollout status deploy/acr-gateway`
+- `kubectl -n acr-system rollout status deploy/acr-killswitch`
+- `kubectl -n acr-system rollout status deploy/acr-opa`
 - OIDC login works
 - approval queue works
 - kill/restore works
 - OPA discovery endpoint is reachable
 - active runtime bundle contains the activated release
-- refund/email/ticket executor endpoints succeed
+- executor endpoints succeed
 - alerts and dashboards are configured

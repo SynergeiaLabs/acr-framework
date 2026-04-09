@@ -151,12 +151,17 @@ Scope:
 - cleaner approval and escalation operations for on-call teams
 
 ### 13. Reference Production Deployment
-Status: `planned`
+Status: `done`
 
-Scope:
-- one clearly blessed deployment model
-- network enforcement story
-- identity, secrets, observability, and rollback guidance
+What landed:
+- one clearly blessed Kubernetes production overlay under `deploy/k8s/overlays/production`
+- External Secrets based runtime secret management instead of applying example secrets
+- explicit production egress allowlists for managed dependencies and protected executors
+- OIDC-first operator auth, object-storage-backed bundle delivery, and rollout guidance in the production install docs
+
+Remaining follow-up:
+- optional admission-policy examples for clusters enforcing extra guardrails
+- provider-specific examples for secret stores and workload identity
 
 ### 14. Compliance Package
 Status: `done`

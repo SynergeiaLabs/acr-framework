@@ -7,13 +7,14 @@ data:
   LOG_LEVEL: "INFO"
   SCHEMA_BOOTSTRAP_MODE: "validate"
   STRICT_DEPENDENCY_STARTUP: "true"
+  REQUIRE_BUNDLE_AUTH: "false"
   OPA_URL: "http://acr-opa:8181"
   KILLSWITCH_URL: "http://acr-killswitch:8443"
   OTEL_SERVICE_NAME: "acr-control-plane"
+  OTEL_EXPORTER_OTLP_ENDPOINT: "https://otel.example.com"
   EXECUTE_ALLOWED_ACTIONS: "true"
-  REQUIRE_BUNDLE_AUTH: "false"
   POLICY_BUNDLE_BACKEND: "s3"
-  POLICY_BUNDLE_S3_BUCKET: "change-me"
+  POLICY_BUNDLE_S3_BUCKET: "acr-control-plane-production"
   POLICY_BUNDLE_S3_PREFIX: "acr/policy-bundles"
   POLICY_BUNDLE_S3_REGION: "us-east-1"
   POLICY_BUNDLE_PUBLIC_BASE_URL: "https://acr.example.com"
@@ -31,7 +32,3 @@ data:
     {"acr-platform-admin":["agent_admin","security_admin","auditor","killswitch_operator","approver"],
      "acr-approver":["approver"],
      "acr-auditor":["auditor"]}
-  EXECUTOR_INTEGRATIONS_JSON: >
-    {"issue_refund":{"provider":"refund_api","url":"https://refunds.internal/api/refunds","api_key":"env:FINANCE_EXECUTOR_API_KEY","default_currency":"USD"},
-     "send_email":{"provider":"email_api","url":"https://messaging.internal/api/send","api_key":"env:EMAIL_EXECUTOR_API_KEY","from_address":"ops@example.com"},
-     "create_ticket":{"provider":"ticket_api","url":"https://tickets.internal/api/tickets","api_key":"env:TICKET_EXECUTOR_API_KEY","default_queue":"operations"}}

@@ -87,8 +87,8 @@ Recommended node flow:
 
 If you want a reference shape, see:
 
-- [n8n README](/Users/adamdistefano/Desktop/control_plane/examples/n8n/README.md)
-- [n8n workflow JSON](/Users/adamdistefano/Desktop/control_plane/examples/n8n/acr_sensitive_action_workflow.json)
+- [n8n README](../examples/n8n/README.md)
+- [n8n workflow JSON](../examples/n8n/acr_sensitive_action_workflow.json)
 
 ## Protected Executor Pattern
 
@@ -103,8 +103,8 @@ Instead:
 
 Reference implementation:
 
-- [protected executor app](/Users/adamdistefano/Desktop/control_plane/examples/protected_executor/app.py)
-- [protected executor guide](/Users/adamdistefano/Desktop/control_plane/examples/protected_executor/README.md)
+- [protected executor app](../examples/protected_executor/app.py)
+- [protected executor guide](../examples/protected_executor/README.md)
 
 ## Adoption Guidance For Non-Engineering Teams
 
