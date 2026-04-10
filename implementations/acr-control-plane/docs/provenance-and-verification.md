@@ -62,8 +62,8 @@ The compliance package is signed as a blob and shipped with a Sigstore bundle:
 
 ```bash
 cosign verify-blob \
-  acr-control-plane-compliance-package-v1.0.1.tar.gz \
-  --bundle acr-control-plane-compliance-package-v1.0.1.sigstore.json \
+  acr-control-plane-compliance-package-v1.1.0.tar.gz \
+  --bundle acr-control-plane-compliance-package-v1.1.0.sigstore.json \
   --certificate-identity-regexp "^https://github.com/<owner>/<repo>/.github/workflows/acr-control-plane-release.yml@refs/tags/v.*$" \
   --certificate-oidc-issuer "https://token.actions.githubusercontent.com"
 ```
@@ -71,7 +71,7 @@ cosign verify-blob \
 Then verify the tarball checksum:
 
 ```bash
-shasum -a 256 -c acr-control-plane-compliance-package-v1.0.1.sha256
+shasum -a 256 -c acr-control-plane-compliance-package-v1.1.0.sha256
 ```
 
 ## Operational Guidance

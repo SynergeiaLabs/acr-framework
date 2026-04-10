@@ -45,7 +45,7 @@ async def lifespan(app: FastAPI):
         await _redis.aclose()
 
 
-app = FastAPI(title="ACR Kill Switch Service", version="1.0.1", lifespan=lifespan)
+app = FastAPI(title="ACR Kill Switch Service", version="1.1.0", lifespan=lifespan)
 
 
 def _redis_client() -> aioredis.Redis:

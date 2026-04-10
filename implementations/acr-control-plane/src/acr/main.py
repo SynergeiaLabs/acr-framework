@@ -193,7 +193,7 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
 app = FastAPI(
     title="ACR Control Plane",
     description="Agentic Control at Runtime",
-    version="1.0.1",
+    version="1.1.0",
     lifespan=lifespan,
     docs_url=None,
     redoc_url=None,

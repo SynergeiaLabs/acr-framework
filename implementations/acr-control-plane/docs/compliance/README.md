@@ -44,7 +44,7 @@ From the implementation root:
 ```bash
 python scripts/build_compliance_package.py \
   --implementation-dir . \
-  --version v1.0.1 \
+  --version v1.1.0 \
   --source-ref <git-sha> \
   --output-dir dist/compliance
 ```

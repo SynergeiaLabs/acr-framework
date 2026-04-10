@@ -115,7 +115,7 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--version",
         required=True,
-        help="Release version or tag, for example v1.0.1",
+        help="Release version or tag, for example v1.1.0",
     )
     parser.add_argument(
         "--source-ref",
